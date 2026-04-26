@@ -198,7 +198,7 @@ async function loadChat() {
   const user = await resUser.json();
   currentUserId = user._id;
 
-  socket = io("http://localhost:5000");
+  socket = io("https://mentor-platform-vbmq.onrender.com/");
 
   socket.on("receiveMessage", (data) => {
     displayMessage(data.senderId, data.message);
