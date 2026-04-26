@@ -1,5 +1,6 @@
 const Connection = require("../models/Connection");
 const Notification = require("../models/Notification");
+const User = require("../models/User");
 
 // Send connection request
 const sendRequest = async (req, res) => {
@@ -12,10 +13,12 @@ const sendRequest = async (req, res) => {
       return res.status(400).json({ message: "Cannot send request to yourself" });
     }
 
-    // check if already exists
+    // check if already exists (either direction)
     const existing = await Connection.findOne({
-      sender: senderId,
-      receiver: receiverId
+      $or: [
+        { sender: senderId, receiver: receiverId },
+        { sender: receiverId, receiver: senderId }
+      ]
     });
 
     if (existing) {
@@ -29,11 +32,15 @@ const sendRequest = async (req, res) => {
 
     await connection.save();
 
-    // 🔔 CREATE NOTIFICATION
+    // Look up sender name for the notification
+    const senderUser = await User.findById(senderId).select("name");
+
+    // CREATE NOTIFICATION
     await Notification.create({
       userId: receiverId,
-      message: "You received a connection request",
-      type: "connection"
+      senderName: senderUser ? senderUser.name : "Someone",
+      message: `${senderUser ? senderUser.name : "Someone"} sent you a connection request`,
+      type: "request"
     });
 
     res.json({ message: "Connection request sent" });
@@ -47,6 +54,7 @@ const sendRequest = async (req, res) => {
 const respondRequest = async (req, res) => {
   try {
     const { requestId, action } = req.body;
+    const userId = req.user.id;
 
     const connection = await Connection.findById(requestId);
 
@@ -58,11 +66,15 @@ const respondRequest = async (req, res) => {
       connection.status = "accepted";
       await connection.save();
 
-      // 🔔 NOTIFY SENDER
+      // Look up acceptor name
+      const acceptorUser = await User.findById(userId).select("name");
+
+      // NOTIFY SENDER
       await Notification.create({
         userId: connection.sender,
-        message: "Your connection request was accepted",
-        type: "connection"
+        senderName: acceptorUser ? acceptorUser.name : "Someone",
+        message: `${acceptorUser ? acceptorUser.name : "Someone"} accepted your connection request`,
+        type: "accepted"
       });
 
       return res.json({ message: "Request accepted" });
@@ -85,19 +97,19 @@ const getConnections = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // ✅ Incoming requests (others → you)
+    // Incoming requests (others -> you)
     const requests = await Connection.find({
       receiver: userId,
       status: "pending"
     }).populate("sender", "name email role");
 
-    // ✅ Sent requests (you → others)
+    // Sent requests (you -> others)
     const sentRequests = await Connection.find({
       sender: userId,
       status: "pending"
     }).populate("receiver", "name email role");
 
-    // ✅ Accepted connections
+    // Accepted connections
     const connections = await Connection.find({
       $or: [
         { sender: userId, status: "accepted" },
@@ -107,7 +119,7 @@ const getConnections = async (req, res) => {
 
     res.json({
       requests,
-      sentRequests, // 🔥 NEW
+      sentRequests,
       connections
     });
 

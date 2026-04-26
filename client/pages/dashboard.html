@@ -1,8 +1,10 @@
-<!DOCTYPE html> 
-
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <title>Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MentorConnect Dashboard - Find mentors, view meetings and suggestions">
+  <title>Dashboard | MentorConnect</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 
@@ -10,51 +12,45 @@
 
 <div class="layout">
 
-  <!-- SIDEBAR (COMPONENT) -->
-
+  <!-- SIDEBAR -->
   <div id="sidebar"></div>
 
   <!-- MAIN -->
-
   <div class="main">
 
-```
-<!-- NAVBAR (COMPONENT) -->
-<div id="navbar"></div>
+    <!-- NAVBAR -->
+    <div id="navbar"></div>
 
-<!-- CONTENT -->
-<section class="content">
+    <!-- CONTENT -->
+    <section class="content">
 
-  <!-- SEARCH -->
-  <div class="card">
-    <h3>Find Mentors / Mentees</h3>
+      <!-- SEARCH -->
+      <div class="card">
+        <h3>Find Mentors / Entrepreneurs</h3>
+        <div class="search-box">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search by name, email or skill..."
+          />
+          <button onclick="handleSearch()">Search</button>
+        </div>
+        <div id="searchResults"></div>
+      </div>
 
-    <div class="search-box">
-      <input
-        type="text"
-        id="searchInput"
-        placeholder="Search users..."
-      />
-      <button onclick="handleSearch()">Search</button>
-    </div>
+      <!-- SUGGESTIONS -->
+      <div class="card">
+        <h3>Suggested Connections</h3>
+        <div id="suggestions"></div>
+      </div>
 
-    <div id="searchResults"></div>
-  </div>
+      <!-- MEETINGS -->
+      <div class="card">
+        <h3>Upcoming Meetings</h3>
+        <div id="meetings"></div>
+      </div>
 
-  <!-- SUGGESTIONS -->
-  <div class="card">
-    <h3>Suggested Connections</h3>
-    <div id="suggestions"></div>
-  </div>
-
-  <!-- MEETINGS -->
-  <div class="card">
-    <h3>Upcoming Meetings</h3>
-    <div id="meetings"></div>
-  </div>
-
-</section>
-```
+    </section>
 
   </div>
 

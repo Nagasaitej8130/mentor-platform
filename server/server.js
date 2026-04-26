@@ -1,5 +1,4 @@
 require("dotenv").config();
-console.log("MONGO_URI:", process.env.MONGO_URI);
 const userRoutes = require("./routes/userRoutes");
 
 const notificationRoutes = require("./routes/notificationRoutes");
@@ -11,6 +10,7 @@ const matchRoutes = require("./routes/matchRoutes");
 const connectionRoutes = require("./routes/connectionRoutes");
 const express = require("express");
 const http = require("http");
+const path = require("path");
 const { Server } = require("socket.io");
 const cors = require("cors");
 
@@ -35,22 +35,21 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use("/api/auth", authRoutes);
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, "../client")));
 
+// API Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/connections", connectionRoutes);
 app.use("/api/match", matchRoutes);
-
 app.use("/api/messages", messageRoutes);
-
 app.use("/api/meetings", meetingRoutes);
-
 app.use("/api/notifications", notificationRoutes);
-
 app.use("/api/users", userRoutes);
-// Root route
+
+// Root route — serve landing page
 app.get("/", (req, res) => {
-  res.send("API is running 🚀");
+  res.sendFile(path.join(__dirname, "../client/index.html"));
 });
 
 // Protected route

@@ -1,79 +1,80 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-  <title>Chat</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Chat with your connections on MentorConnect">
+  <title>Chat | MentorConnect</title>
   <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 
-<body>
+<body onload="loadLayout('Chat'); loadChat();">
 
 <div class="layout">
 
   <!-- SIDEBAR -->
-
   <div id="sidebar"></div>
 
   <!-- MAIN -->
-
   <div class="main">
 
-```
-<!-- NAVBAR -->
-<div id="navbar"></div>
+    <!-- NAVBAR -->
+    <div id="navbar"></div>
 
-<!-- CONTENT -->
-<section class="content chat-layout">
+    <!-- CHAT LAYOUT -->
+    <div class="chat-layout">
 
-  <!-- LEFT PANEL -->
-  <div class="chat-users">
+      <!-- LEFT: USER LIST -->
+      <div class="chat-users">
+        <div class="chat-users-header">
+          <h4>Conversations</h4>
+          <input
+            type="text"
+            id="chatSearch"
+            placeholder="Search conversations..."
+            oninput="filterChatUsers()"
+          />
+        </div>
+        <div id="users"></div>
+      </div>
 
-    <input 
-      type="text" 
-      id="chatSearch" 
-      placeholder="Search connections..." 
-      oninput="filterChatUsers()"
-    />
+      <!-- RIGHT: CHAT BOX -->
+      <div class="chat-box">
 
-    <div id="users"></div>
+        <!-- Placeholder when no chat selected -->
+        <div class="chat-placeholder" id="chatPlaceholder">
+          <p>Select a conversation to start chatting</p>
+        </div>
 
-  </div>
+        <!-- Active chat area (hidden by default) -->
+        <div id="chatActive">
+          <div class="chat-header">
+            <span class="chat-header-dot"></span>
+            <span id="chatUserName">Select a user</span>
+          </div>
 
-  <!-- RIGHT PANEL -->
-  <div class="chat-box">
+          <ul id="messages"></ul>
 
-    <!-- HEADER -->
-    <div class="chat-header">
-      <h3 id="chatUserName">Send message</h3>
+          <div class="chat-input">
+            <input
+              id="message"
+              type="text"
+              placeholder="Type a message..."
+            />
+            <button onclick="sendMessage()">Send</button>
+          </div>
+        </div>
+
+      </div>
+
     </div>
-
-    <!-- MESSAGES -->
-    <ul id="messages"></ul>
-
-    <!-- INPUT -->
-    <div class="chat-input">
-      <input id="message" placeholder="Type a message..." />
-      <button onclick="sendMessage()">Send</button>
-    </div>
-
-  </div>
-
-</section>
-
 
   </div>
 
 </div>
 
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-
 <script src="../js/main.js"></script>
-
-<!-- LOAD LAYOUT -->
-
-<script>
-  loadLayout("Chat");
-</script>
 
 </body>
 </html>

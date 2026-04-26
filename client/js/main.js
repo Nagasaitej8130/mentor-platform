@@ -1,244 +1,447 @@
-const API = "http://localhost:5000/api";
+const API = "/api";
 
 // ================= GLOBAL STATE =================
 let myConnections = [];
 let sentRequests = [];
 let receivedRequests = [];
 
-//nav bar and side bar loading 
-async function loadLayout(pageTitle) {
-  // SIDEBAR
-  const sidebarRes = await fetch("../components/sidebar.html");
-  const sidebarHtml = await sidebarRes.text();
-  document.getElementById("sidebar").innerHTML = sidebarHtml;
+// ================= TOAST SYSTEM =================
+function showToast(message, type = "info") {
+  // Remove existing toast
+  const existing = document.getElementById("toast");
+  if (existing) existing.remove();
 
-  // NAVBAR
-  const navRes = await fetch("../components/navbar.html");
-  const navHtml = await navRes.text();
-  document.getElementById("navbar").innerHTML = navHtml;
+  const toast = document.createElement("div");
+  toast.id = "toast";
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <span class="toast-icon">${type === "success" ? "✓" : type === "error" ? "✕" : type === "warning" ? "⚠" : "ℹ"}</span>
+    <span class="toast-msg">${escapeHtml(message)}</span>
+  `;
+  document.body.appendChild(toast);
 
-  // Set page title
-  const titleEl = document.getElementById("pageTitle");
-  if (titleEl) titleEl.innerText = pageTitle;
+  // Trigger animation
+  requestAnimationFrame(() => toast.classList.add("show"));
 
-  // Load user name
-  loadCurrentUserName();
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
-// ================= AUTH =================
 
-// LOGIN
-async function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+// ================= HELPERS =================
 
-  const res = await fetch(`${API}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password })
-  });
+function escapeHtml(str) {
+  if (!str) return "";
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
 
-  const data = await res.json();
-
-  if (res.ok) {
-    localStorage.setItem("token", data.token);
-    alert("Login successful");
-    window.location.href = "dashboard.html";
-  } else {
-    alert(data.message);
+function getUserIdFromToken() {
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.id;
+  } catch {
+    return null;
   }
 }
 
-// REGISTER
+function requireAuth() {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    window.location.href = "login.html";
+    return false;
+  }
+  return true;
+}
+
+function authHeaders() {
+  return {
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  };
+}
+
+function jsonAuthHeaders() {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  };
+}
+
+// ================= LAYOUT =================
+
+async function loadLayout(pageTitle) {
+  try {
+    // SIDEBAR
+    const sidebarRes = await fetch("../components/sidebar.html");
+    const sidebarHtml = await sidebarRes.text();
+    document.getElementById("sidebar").innerHTML = sidebarHtml;
+
+    // NAVBAR
+    const navRes = await fetch("../components/navbar.html");
+    const navHtml = await navRes.text();
+    document.getElementById("navbar").innerHTML = navHtml;
+
+    // Set page title
+    const titleEl = document.getElementById("pageTitle");
+    if (titleEl) titleEl.innerText = pageTitle;
+
+    // Highlight active sidebar link
+    highlightActiveNav();
+
+    // Load user name
+    loadCurrentUserName();
+
+    // Inject Sidebar Overlay for mobile if it doesnt exist
+    if (!document.getElementById("sidebarOverlay")) {
+      const overlay = document.createElement("div");
+      overlay.id = "sidebarOverlay";
+      overlay.className = "sidebar-overlay";
+      overlay.onclick = toggleSidebar;
+      document.body.appendChild(overlay);
+    }
+  } catch (err) {
+    console.error("Layout load error:", err);
+  }
+}
+
+// Mobile sidebar toggle
+function toggleSidebar() {
+  const sidebar = document.querySelector(".sidebar");
+  const overlay = document.getElementById("sidebarOverlay");
+  if (sidebar) sidebar.classList.toggle("open");
+  if (overlay) overlay.classList.toggle("show");
+}
+
+function highlightActiveNav() {
+  const currentPage = window.location.pathname.split("/").pop();
+  document.querySelectorAll(".sidebar nav a").forEach(link => {
+    const href = link.getAttribute("href");
+    if (href && href.includes(currentPage)) {
+      link.classList.add("active");
+    }
+  });
+}
+
+// ================= AUTH =================
+
+async function login() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  if (!email || !password) {
+    showToast("Please fill in all fields", "warning");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      localStorage.setItem("token", data.token);
+      showToast("Login successful!", "success");
+      setTimeout(() => window.location.href = "dashboard.html", 800);
+    } else {
+      showToast(data.message || "Login failed", "error");
+    }
+  } catch (err) {
+    showToast("Network error. Is the server running?", "error");
+  }
+}
+
 async function register() {
-  const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
   const role = document.getElementById("role").value;
 
-  const res = await fetch(`${API}/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password, role })
-  });
+  if (!name || !email || !password || !role) {
+    showToast("Please fill in all fields", "warning");
+    return;
+  }
 
-  const data = await res.json();
+  if (password.length < 6) {
+    showToast("Password must be at least 6 characters", "warning");
+    return;
+  }
 
-  if (res.ok) {
-    alert("Registration successful");
-    window.location.href = "login.html";
-  } else {
-    alert(data.message);
+  try {
+    const res = await fetch(`${API}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password, role })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      showToast("Registration successful! Redirecting...", "success");
+      setTimeout(() => window.location.href = "login.html", 1000);
+    } else {
+      showToast(data.message || "Registration failed", "error");
+    }
+  } catch (err) {
+    showToast("Network error. Is the server running?", "error");
   }
 }
 
-// LOGOUT
 function logout() {
   localStorage.removeItem("token");
-  window.location.href = "login.html";
+  showToast("Logged out", "info");
+  setTimeout(() => window.location.href = "login.html", 600);
 }
 
 // ================= DASHBOARD =================
 
 async function loadDashboard() {
+  if (!requireAuth()) return;
+
   const token = localStorage.getItem("token");
 
-  // 🔥 load connections first
+  // Load connections state first
   await loadConnections();
 
-  // suggestions
-  const res1 = await fetch(`${API}/match`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  const suggestions = await res1.json();
+  // Suggestions
+  try {
+    const res1 = await fetch(`${API}/match`, {
+      headers: authHeaders()
+    });
+    const suggestions = await res1.json();
 
-  const suggestionsDiv = document.getElementById("suggestions");
-  suggestionsDiv.innerHTML = "";
+    const suggestionsDiv = document.getElementById("suggestions");
+    if (suggestionsDiv) {
+      suggestionsDiv.innerHTML = "";
 
-  suggestions.forEach(item => {
-    const user = item.user;
+      if (!suggestions.length) {
+        suggestionsDiv.innerHTML = `<div class="empty-state"><p>No suggestions yet. Update your profile and skills!</p></div>`;
+      } else {
+        suggestions.forEach(item => {
+          const user = item.user;
+          const role = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+          const initials = user.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
 
-    const div = document.createElement("div");
-div.classList.add("user-card");
+          const isConnected = myConnections.includes(user._id);
+          const isSent = sentRequests.includes(user._id);
+          const isReceived = receivedRequests.includes(user._id);
 
-const role = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+          let btn = "";
+          if (isConnected) {
+            btn = `<button class="btn-success" disabled>Connected</button>`;
+          } else if (isSent) {
+            btn = `<button class="btn-muted" disabled>Requested</button>`;
+          } else if (isReceived) {
+            btn = `<button class="btn-success" onclick="acceptFromSearch('${user._id}')">Accept</button>`;
+          } else {
+            btn = `<button onclick="sendRequest('${user._id}')">Connect</button>`;
+          }
 
-div.innerHTML = `
-  <div class="user-info">
-    <p class="user-name">${user.name}</p>
-    <p class="user-role">${role}</p>
-  </div>
+          const div = document.createElement("div");
+          div.classList.add("user-card");
+          div.innerHTML = `
+            <div class="user-card-left">
+              <div class="avatar">${initials}</div>
+              <div class="user-info">
+                <p class="user-name">${escapeHtml(user.name)}</p>
+                <p class="user-role">${role}</p>
+                ${item.score > 0 ? `<span class="match-badge">${item.score} skill match${item.score > 1 ? "es" : ""}</span>` : ""}
+              </div>
+            </div>
+            <div class="user-actions">${btn}</div>
+          `;
+          suggestionsDiv.appendChild(div);
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Error loading suggestions:", err);
+  }
 
-  <div class="user-actions">
-    <button onclick="sendRequest('${user._id}')">Connect</button>
-  </div>
-`;
-    suggestionsDiv.appendChild(div);
-  });
-
-  // 🔔 notifications
+  // Notifications
   loadNotifications();
 
-  // meetings
-  const res2 = await fetch(`${API}/meetings`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  const meetings = await res2.json();
+  // Meetings
+  try {
+    const res2 = await fetch(`${API}/meetings`, {
+      headers: authHeaders()
+    });
+    const meetings = await res2.json();
 
-  const meetingsDiv = document.getElementById("meetings");
-  meetingsDiv.innerHTML = "";
+    const meetingsDiv = document.getElementById("meetings");
+    if (meetingsDiv) {
+      meetingsDiv.innerHTML = "";
 
-  meetings.forEach(meet => {
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <p>${meet.date} - ${meet.time}</p>
-      <a href="${meet.link}" target="_blank">Join Meeting</a>
-      <hr/>
-    `;
-    meetingsDiv.appendChild(div);
-  });
+      if (!meetings.length) {
+        meetingsDiv.innerHTML = `<div class="empty-state"><p>No meetings scheduled yet.</p></div>`;
+      } else {
+        meetings.forEach(meet => {
+          const div = document.createElement("div");
+          div.classList.add("meeting-item");
+          div.innerHTML = `
+            <div class="meeting-details">
+              <div class="meeting-date-time">
+                <strong>${escapeHtml(meet.date)}</strong>
+                <span class="meeting-separator">-</span>
+                <span>${escapeHtml(meet.time)}</span>
+              </div>
+            </div>
+            <a href="${escapeHtml(meet.link)}" target="_blank" class="btn-small">Join</a>
+          `;
+          meetingsDiv.appendChild(div);
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Error loading meetings:", err);
+  }
 }
 
-if (window.location.pathname.includes("dashboard.html")) {
-  loadDashboard();
-}
-if (window.location.pathname.includes("chat.html")) {
-  loadChat();
-}
 // ================= CONNECTIONS =================
 
 async function sendRequest(receiverId) {
-  const token = localStorage.getItem("token");
+  if (!requireAuth()) return;
 
-  await fetch(`${API}/connections/send`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({ receiverId })
-  });
+  try {
+    const res = await fetch(`${API}/connections/send`, {
+      method: "POST",
+      headers: jsonAuthHeaders(),
+      body: JSON.stringify({ receiverId })
+    });
 
-  await loadConnections();
+    const data = await res.json();
 
- if (searchInput && searchInput.value.trim()) {
-  searchUsers(searchInput.value.trim());
-}
+    if (res.ok) {
+      showToast("Connection request sent!", "success");
+    } else {
+      showToast(data.message || "Failed to send request", "error");
+    }
+
+    await loadConnections();
+
+    // Refresh search results if search is active
+    const searchInput = document.getElementById("searchInput");
+    if (searchInput && searchInput.value.trim()) {
+      searchUsers(searchInput.value.trim());
+    }
+
+    // Refresh suggestions if on dashboard
+    const suggestionsDiv = document.getElementById("suggestions");
+    if (suggestionsDiv && window.location.pathname.includes("dashboard")) {
+      loadDashboard();
+    }
+  } catch (err) {
+    showToast("Network error", "error");
+  }
 }
 
 async function loadConnections() {
-  const token = localStorage.getItem("token");
+  if (!requireAuth()) return;
+
   const userId = getUserIdFromToken();
 
-  const res = await fetch(`${API}/connections`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
-  const data = await res.json();
-
-  const requestsDiv = document.getElementById("requests");
-  const connectionsDiv = document.getElementById("connections");
-
-  if (requestsDiv) requestsDiv.innerHTML = "";
-  if (connectionsDiv) connectionsDiv.innerHTML = "";
-
-  // store states
-  myConnections = data.connections.map(conn =>
-    conn.sender._id === userId
-      ? conn.receiver._id
-      : conn.sender._id
-  );
-
-  sentRequests = data.sentRequests.map(r => r.receiver._id);
-  receivedRequests = data.requests.map(r => r.sender._id);
-
-  if (requestsDiv && connectionsDiv) {
-    data.requests.forEach(req => {
-      const div = document.createElement("div");
-      div.innerHTML = `
-        <p>${req.sender.name}</p>
-        <button onclick="respond('${req._id}', 'accept')">Accept</button>
-        <button onclick="respond('${req._id}', 'reject')">Reject</button>
-        <hr/>
-      `;
-      requestsDiv.appendChild(div);
+  try {
+    const res = await fetch(`${API}/connections`, {
+      headers: authHeaders()
     });
 
-    data.connections.forEach(conn => {
-  const otherUser =
-    conn.sender._id === userId
-      ? conn.receiver
-      : conn.sender;
+    const data = await res.json();
 
-  const div = document.createElement("div"); // ✅ THIS WAS MISSING
+    const requestsDiv = document.getElementById("requests");
+    const connectionsDiv = document.getElementById("connections");
 
-  div.innerHTML = `
-    <p onclick="selectChatUser(this, '${otherUser._id}', '${otherUser.name}')">
-      ${otherUser.name}
-    </p>
-  `;
+    if (requestsDiv) requestsDiv.innerHTML = "";
+    if (connectionsDiv) connectionsDiv.innerHTML = "";
 
-  connectionsDiv.appendChild(div);
-});
+    // Store states for search integration
+    myConnections = data.connections.map(conn =>
+      conn.sender._id === userId ? conn.receiver._id : conn.sender._id
+    );
+    sentRequests = data.sentRequests.map(r => r.receiver._id);
+    receivedRequests = data.requests.map(r => r.sender._id);
+
+    if (requestsDiv && connectionsDiv) {
+      // Render pending requests
+      if (!data.requests.length) {
+        requestsDiv.innerHTML = `<div class="empty-state"><p>No pending requests</p></div>`;
+      } else {
+        data.requests.forEach(req => {
+          const initials = req.sender.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+          const div = document.createElement("div");
+          div.classList.add("user-card");
+          div.innerHTML = `
+            <div class="user-card-left">
+              <div class="avatar">${initials}</div>
+              <div class="user-info">
+                <p class="user-name">${escapeHtml(req.sender.name)}</p>
+                <p class="user-role">${escapeHtml(req.sender.role)}</p>
+              </div>
+            </div>
+            <div class="user-actions">
+              <button class="btn-success" onclick="respond('${req._id}', 'accept')">Accept</button>
+              <button class="btn-danger" onclick="respond('${req._id}', 'reject')">Reject</button>
+            </div>
+          `;
+          requestsDiv.appendChild(div);
+        });
+      }
+
+      // Render accepted connections
+      if (!data.connections.length) {
+        connectionsDiv.innerHTML = `<div class="empty-state"><p>No connections yet. Start connecting!</p></div>`;
+      } else {
+        data.connections.forEach(conn => {
+          const otherUser = conn.sender._id === userId ? conn.receiver : conn.sender;
+          const initials = otherUser.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+
+          const div = document.createElement("div");
+          div.classList.add("user-card");
+          div.innerHTML = `
+            <div class="user-card-left">
+              <div class="avatar">${initials}</div>
+              <div class="user-info">
+                <p class="user-name">${escapeHtml(otherUser.name)}</p>
+                <p class="user-role">${escapeHtml(otherUser.role)}</p>
+              </div>
+            </div>
+            <div class="user-actions">
+              <button class="btn-small" onclick="startChatFromSearch('${otherUser._id}', '${escapeHtml(otherUser.name.replace(/'/g, "\\'"))}')">Message</button>
+            </div>
+          `;
+          connectionsDiv.appendChild(div);
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Error loading connections:", err);
   }
 }
 
 async function respond(requestId, action) {
-  const token = localStorage.getItem("token");
+  if (!requireAuth()) return;
 
-  await fetch(`${API}/connections/respond`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({ requestId, action })
-  });
+  try {
+    await fetch(`${API}/connections/respond`, {
+      method: "POST",
+      headers: jsonAuthHeaders(),
+      body: JSON.stringify({ requestId, action })
+    });
 
-  await loadConnections();
+    showToast(action === "accept" ? "Connection accepted!" : "Request rejected", action === "accept" ? "success" : "info");
+    await loadConnections();
+  } catch (err) {
+    showToast("Error responding to request", "error");
+  }
 }
 
 // ================= CHAT =================
-// (unchanged)
 
 let socket;
 let currentUserId;
@@ -246,84 +449,119 @@ let selectedUserId;
 let roomId;
 
 async function loadChat() {
-  const token = localStorage.getItem("token");
+  if (!requireAuth()) return;
 
-  const resUser = await fetch(`${API}/auth/profile`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  const user = await resUser.json();
-  currentUserId = user._id;
+  try {
+    const resUser = await fetch(`${API}/auth/profile`, {
+      headers: authHeaders()
+    });
+    const user = await resUser.json();
+    currentUserId = user._id;
 
-  socket = io("http://localhost:5000");
+    socket = io("http://localhost:5000");
 
-  socket.on("receiveMessage", (data) => {
-    displayMessage(data.senderId, data.message);
-  });
+    socket.on("receiveMessage", (data) => {
+      displayMessage(data.senderId, data.message);
+    });
 
-  const res = await fetch(`${API}/connections`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+    const res = await fetch(`${API}/connections`, {
+      headers: authHeaders()
+    });
 
-  const data = await res.json();
-  const usersDiv = document.getElementById("users");
+    const data = await res.json();
+    const usersDiv = document.getElementById("users");
 
-  usersDiv.innerHTML = "";
+    if (usersDiv) {
+      usersDiv.innerHTML = "";
 
-  data.connections.forEach(conn => {
-  const otherUser =
-    conn.sender._id === currentUserId
-      ? conn.receiver
-      : conn.sender;
+      if (!data.connections.length) {
+        usersDiv.innerHTML = `<div class="empty-state"><p>No connections yet</p></div>`;
+      } else {
+        data.connections.forEach(conn => {
+          const otherUser = conn.sender._id === currentUserId ? conn.receiver : conn.sender;
+          const initials = otherUser.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
 
-  const p = document.createElement("p"); // ✅ no div confusion
+          const div = document.createElement("div");
+          div.classList.add("chat-user-item");
 
-  p.innerText = otherUser.name;
+          div.innerHTML = `
+            <div class="avatar avatar-sm">${initials}</div>
+            <span>${escapeHtml(otherUser.name)}</span>
+          `;
 
-  p.onclick = function () {
-    selectChatUser(p, otherUser._id, otherUser.name);
-  };
+          div.onclick = function () {
+            selectChatUser(div, otherUser._id, otherUser.name);
+          };
 
-  usersDiv.appendChild(p);
-});
+          usersDiv.appendChild(div);
+        });
+      }
+    }
+
+    // Auto-open chat if navigated from search
+    const chatUserId = localStorage.getItem("chatUserId");
+    const chatUserName = localStorage.getItem("chatUserName");
+    if (chatUserId && chatUserName) {
+      localStorage.removeItem("chatUserId");
+      localStorage.removeItem("chatUserName");
+      // Find the user element and select it
+      const userItems = document.querySelectorAll(".chat-user-item");
+      userItems.forEach(item => {
+        if (item.onclick) {
+          // Try to auto-open
+        }
+      });
+      openChat(chatUserId, chatUserName);
+    }
+  } catch (err) {
+    console.error("Error loading chat:", err);
+  }
 }
 
 function selectChatUser(element, userId, name) {
-  // remove previous active
-  document.querySelectorAll("#users p").forEach(p => {
-    p.classList.remove("active-chat-user");
+  document.querySelectorAll(".chat-user-item").forEach(el => {
+    el.classList.remove("active-chat-user");
   });
 
   element.classList.add("active-chat-user");
-
-  // 🔥 THIS MUST PASS NAME
   openChat(userId, name);
 }
 
 async function openChat(userId, name) {
   selectedUserId = userId;
-  document.getElementById("chatUserName").innerText = name;
+
+  const chatUserNameEl = document.getElementById("chatUserName");
+  if (chatUserNameEl) chatUserNameEl.innerText = name;
+
+  const chatPlaceholder = document.getElementById("chatPlaceholder");
+  const chatActive = document.getElementById("chatActive");
+  if (chatPlaceholder) chatPlaceholder.style.display = "none";
+  if (chatActive) chatActive.style.display = "flex";
 
   roomId = [currentUserId, selectedUserId].sort().join("_");
-
   socket.emit("joinRoom", roomId);
 
-  const token = localStorage.getItem("token");
-  const res = await fetch(`${API}/messages/${userId}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  try {
+    const res = await fetch(`${API}/messages/${userId}`, {
+      headers: authHeaders()
+    });
 
-  const messages = await res.json();
-
-  const msgList = document.getElementById("messages");
-  msgList.innerHTML = "";
-
-  messages.forEach(msg => {
-    displayMessage(msg.sender, msg.message);
-  });
+    const messages = await res.json();
+    const msgList = document.getElementById("messages");
+    if (msgList) {
+      msgList.innerHTML = "";
+      messages.forEach(msg => {
+        displayMessage(msg.sender, msg.message);
+      });
+    }
+  } catch (err) {
+    console.error("Error loading messages:", err);
+  }
 }
 
 function sendMessage() {
-  const message = document.getElementById("message").value;
+  const msgInput = document.getElementById("message");
+  const message = msgInput ? msgInput.value : "";
   if (!message.trim()) return;
 
   socket.emit("sendMessage", {
@@ -333,69 +571,69 @@ function sendMessage() {
     receiverId: selectedUserId
   });
 
-  document.getElementById("message").value = "";
+  if (msgInput) msgInput.value = "";
 }
 
 function displayMessage(senderId, message) {
   const li = document.createElement("li");
-
-  // base class
   li.classList.add("message");
 
-  // alignment
   if (senderId === currentUserId) {
     li.classList.add("sent");
-    li.innerText = message; // no "You:" needed
   } else {
     li.classList.add("received");
-    li.innerText = message;
   }
 
-  const messages = document.getElementById("messages");
-  messages.appendChild(li);
+  li.innerText = message;
 
-  // auto scroll to latest message
-  messages.scrollTop = messages.scrollHeight;
+  const messages = document.getElementById("messages");
+  if (messages) {
+    messages.appendChild(li);
+    messages.scrollTop = messages.scrollHeight;
+  }
 }
 
 function filterChatUsers() {
   const query = document.getElementById("chatSearch").value.toLowerCase();
-  const users = document.querySelectorAll("#users p");
+  const users = document.querySelectorAll(".chat-user-item");
 
   users.forEach(user => {
     const name = user.innerText.toLowerCase();
-    user.style.display = name.includes(query) ? "block" : "none";
+    user.style.display = name.includes(query) ? "flex" : "none";
   });
 }
 
 // ================= SEARCH =================
 
-const searchInput = document.getElementById("searchInput");
-const searchResults = document.getElementById("searchResults");
-
 async function searchUsers(query) {
-  const token = localStorage.getItem("token");
+  if (!requireAuth()) return;
 
-  const res = await fetch(`${API}/users/search?q=${query}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  try {
+    const res = await fetch(`${API}/users/search?q=${encodeURIComponent(query)}`, {
+      headers: authHeaders()
+    });
 
-  const users = await res.json();
-
-  displaySearchResults(users);
+    const users = await res.json();
+    displaySearchResults(users);
+  } catch (err) {
+    showToast("Search failed", "error");
+  }
 }
 
-
 function displaySearchResults(users) {
+  const searchResults = document.getElementById("searchResults");
+  if (!searchResults) return;
+
   searchResults.innerHTML = "";
 
   if (!users.length) {
-    searchResults.innerHTML = "<p>No users found</p>";
+    searchResults.innerHTML = `<div class="empty-state"><p>No users found</p></div>`;
     return;
   }
 
   users.forEach(user => {
     const div = document.createElement("div");
+    const initials = user.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
 
     const isConnected = myConnections.includes(user._id);
     const isSent = sentRequests.includes(user._id);
@@ -404,33 +642,31 @@ function displaySearchResults(users) {
     let btn = "";
 
     if (isConnected) {
-      btn = `<button onclick="startChatFromSearch('${user._id}', '${user.name}')">Message</button>`;
-    } 
-    else if (isSent) {
-      btn = `<button disabled>Requested</button>`;
-    } 
-    else if (isReceived) {
+      // Use data attributes to safely pass name without XSS
+      const safeName = escapeHtml(user.name);
+      btn = `<button class="btn-success" data-userid="${user._id}" data-username="${safeName}" onclick="startChatFromSearch(this.dataset.userid, this.dataset.username)">Message</button>`;
+    } else if (isSent) {
+      btn = `<button class="btn-muted" disabled>Requested</button>`;
+    } else if (isReceived) {
       btn = `
-        <button onclick="acceptFromSearch('${user._id}')">Accept</button>
-        <button onclick="rejectFromSearch('${user._id}')">Reject</button>
+        <button class="btn-success" onclick="acceptFromSearch('${user._id}')">Accept</button>
+        <button class="btn-danger" onclick="rejectFromSearch('${user._id}')">Reject</button>
       `;
-    } 
-    else {
+    } else {
       btn = `<button onclick="sendRequest('${user._id}')">Connect</button>`;
     }
 
     div.classList.add("user-card");
-
-div.innerHTML = `
-  <div class="user-info">
-    <p class="user-name">${user.name}</p>
-    <p class="user-role">${user.role}</p>
-  </div>
-
-  <div class="user-actions">
-    ${btn}
-  </div>
-`;
+    div.innerHTML = `
+      <div class="user-card-left">
+        <div class="avatar">${initials}</div>
+        <div class="user-info">
+          <p class="user-name">${escapeHtml(user.name)}</p>
+          <p class="user-role">${escapeHtml(user.role)}</p>
+        </div>
+      </div>
+      <div class="user-actions">${btn}</div>
+    `;
 
     searchResults.appendChild(div);
   });
@@ -438,35 +674,47 @@ div.innerHTML = `
 
 // SEARCH ACTIONS
 async function acceptFromSearch(userId) {
-  const token = localStorage.getItem("token");
+  if (!requireAuth()) return;
 
-  const res = await fetch(`${API}/connections`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  try {
+    const res = await fetch(`${API}/connections`, {
+      headers: authHeaders()
+    });
 
-  const data = await res.json();
+    const data = await res.json();
+    const request = data.requests.find(r => r.sender._id === userId);
 
-  const request = data.requests.find(r => r.sender._id === userId);
+    if (!request) {
+      showToast("Request not found", "warning");
+      return;
+    }
 
-  if (!request) return;
-
-  await respond(request._id, "accept");
+    await respond(request._id, "accept");
+  } catch (err) {
+    showToast("Error accepting request", "error");
+  }
 }
 
 async function rejectFromSearch(userId) {
-  const token = localStorage.getItem("token");
+  if (!requireAuth()) return;
 
-  const res = await fetch(`${API}/connections`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  try {
+    const res = await fetch(`${API}/connections`, {
+      headers: authHeaders()
+    });
 
-  const data = await res.json();
+    const data = await res.json();
+    const request = data.requests.find(r => r.sender._id === userId);
 
-  const request = data.requests.find(r => r.sender._id === userId);
+    if (!request) {
+      showToast("Request not found", "warning");
+      return;
+    }
 
-  if (!request) return;
-
-  await respond(request._id, "reject");
+    await respond(request._id, "reject");
+  } catch (err) {
+    showToast("Error rejecting request", "error");
+  }
 }
 
 function startChatFromSearch(userId, name) {
@@ -475,58 +723,83 @@ function startChatFromSearch(userId, name) {
   window.location.href = "chat.html";
 }
 
-// ================= NOTIFICATIONS =================
-
-// ================= NOTIFICATIONS =================
-
-function renderNotifications(notifs) {
-  const dropdown = document.getElementById("notifDropdown");
-  dropdown.innerHTML = "";
-
-  notifs.forEach(n => {
-    const div = document.createElement("div");
-
-    if (n.type === "request") {
-      div.innerText = `${n.sender.name} sent you a connection request`;
-    } else {
-      div.innerText = n.message || "Notification";
-    }
-
-    dropdown.appendChild(div);
-  });
+function handleSearch() {
+  const query = document.getElementById("searchInput").value.trim();
+  if (!query) {
+    showToast("Type something to search", "warning");
+    return;
+  }
+  searchUsers(query);
 }
 
+function searchConnections() {
+  const query = document.getElementById("connectionSearch").value.toLowerCase();
+  const container = document.getElementById("connections");
+
+  if (!query) {
+    loadConnections();
+    return;
+  }
+
+  const cards = container.getElementsByClassName("user-card");
+  for (let card of cards) {
+    const nameEl = card.querySelector(".user-name");
+    if (nameEl) {
+      const name = nameEl.innerText.toLowerCase();
+      card.style.display = name.includes(query) ? "flex" : "none";
+    }
+  }
+}
+
+// ================= NOTIFICATIONS =================
+
 async function loadNotifications() {
-  const token = localStorage.getItem("token");
+  if (!requireAuth()) return;
 
-  const res = await fetch(`${API}/notifications`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  try {
+    const res = await fetch(`${API}/notifications`, {
+      headers: authHeaders()
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  const dropdown = document.getElementById("notifDropdown");
-  const count = document.getElementById("notifCount");
+    const dropdown = document.getElementById("notifDropdown");
+    const count = document.getElementById("notifCount");
 
-  if (!dropdown || !count) return;
+    if (!dropdown || !count) return;
 
-  dropdown.innerHTML = "";
+    dropdown.innerHTML = "";
 
-  let unread = 0;
+    let unread = 0;
 
-  data.forEach(n => {
-    if (!n.isRead) unread++;
+    if (!data.length) {
+      dropdown.innerHTML = `<div class="notif-empty">No notifications</div>`;
+    } else {
+      data.forEach(n => {
+        if (!n.isRead) unread++;
 
-    const div = document.createElement("div");
-    div.style.padding = "5px";
-    div.style.borderBottom = "1px solid #ddd";
+        const div = document.createElement("div");
+        div.classList.add("notif-item");
+        if (!n.isRead) div.classList.add("notif-unread");
 
-    div.innerHTML = `<p>${n.message}</p>`;
+        div.innerHTML = `
+          <p>${escapeHtml(n.message)}</p>
+          <small>${new Date(n.createdAt).toLocaleString()}</small>
+        `;
 
-    dropdown.appendChild(div);
-  });
+        dropdown.appendChild(div);
+      });
+    }
 
-  count.innerText = unread > 0 ? `(${unread})` : "";
+    count.innerText = unread > 0 ? unread : "";
+    if (unread > 0) {
+      count.style.display = "flex";
+    } else {
+      count.style.display = "none";
+    }
+  } catch (err) {
+    console.error("Error loading notifications:", err);
+  }
 }
 
 async function toggleNotifications() {
@@ -539,25 +812,41 @@ async function toggleNotifications() {
 
   dropdown.style.display = "block";
 
-  const token = localStorage.getItem("token");
-
-  const res = await fetch(`${API}/notifications`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
-  const notifications = await res.json();
-
-  renderNotifications(notifications);
+  // Reload and mark as read
+  await loadNotifications();
+  await markNotificationsRead();
 }
 
 async function markNotificationsRead() {
-  const token = localStorage.getItem("token");
+  if (!requireAuth()) return;
 
-  await fetch(`${API}/notifications/read`, {
-    method: "PUT",
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  try {
+    await fetch(`${API}/notifications/read`, {
+      method: "PUT",
+      headers: authHeaders()
+    });
+
+    // Update count after marking read
+    const count = document.getElementById("notifCount");
+    if (count) {
+      count.innerText = "";
+      count.style.display = "none";
+    }
+  } catch (err) {
+    console.error("Error marking notifications read:", err);
+  }
 }
+
+// Close dropdown when clicking outside
+document.addEventListener("click", (e) => {
+  const dropdown = document.getElementById("notifDropdown");
+  const bellBtn = document.getElementById("notifBell");
+  if (dropdown && bellBtn && !bellBtn.contains(e.target) && !dropdown.contains(e.target)) {
+    dropdown.style.display = "none";
+  }
+});
+
+// ================= PROFILE =================
 
 async function loadCurrentUserName() {
   const token = localStorage.getItem("token");
@@ -565,7 +854,7 @@ async function loadCurrentUserName() {
 
   try {
     const res = await fetch(`${API}/auth/profile`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: authHeaders()
     });
 
     const user = await res.json();
@@ -579,77 +868,44 @@ async function loadCurrentUserName() {
   }
 }
 
-// ================= HELPER =================
-
-function getUserIdFromToken() {
-  const token = localStorage.getItem("token");
-  const payload = JSON.parse(atob(token.split(".")[1]));
-  return payload.id;
-}
-
-function handleSearch() {
-  const query = document.getElementById("searchInput").value.trim();
-
-  if (!query) return; // do nothing if empty
-
-  searchUsers(query);
-}
-
-function searchConnections() {
-  const query = document.getElementById("connectionSearch").value.toLowerCase();
-  const container = document.getElementById("connections");
-
-  if (!query) {
-    loadConnections(); // reload full list
-    return;
-  }
-
-  const cards = container.getElementsByClassName("user-card");
-
-  for (let card of cards) {
-    const name = card.querySelector(".user-name").innerText.toLowerCase();
-
-    if (name.includes(query)) {
-      card.style.display = "flex";
-    } else {
-      card.style.display = "none";
-    }
-  }
-}
-if (window.location.pathname.includes("connections.html")) {
-  loadConnections();
-}
-
 async function loadProfile() {
-  const token = localStorage.getItem("token");
+  if (!requireAuth()) return;
 
-  const res = await fetch(`${API}/auth/profile`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  try {
+    const res = await fetch(`${API}/auth/profile`, {
+      headers: authHeaders()
+    });
 
-  const user = await res.json();
+    const user = await res.json();
 
-  document.getElementById("p_name").innerText = user.name;
-  document.getElementById("p_email").innerText = user.email;
-  document.getElementById("p_role").innerText = user.role;
-  document.getElementById("p_bio").innerText = user.bio || "-";
-  document.getElementById("p_skills").innerText = (user.skills || []).join(", ");
+    document.getElementById("p_name").innerText = user.name || "-";
+    document.getElementById("p_email").innerText = user.email || "-";
+    document.getElementById("p_role").innerText = (user.role || "-").charAt(0).toUpperCase() + (user.role || "-").slice(1);
+    document.getElementById("p_bio").innerText = user.bio || "No bio added yet";
+    document.getElementById("p_skills").innerText = (user.skills || []).join(", ") || "No skills added yet";
 
-  // ROLE BASED UI
-  if (user.role === "mentor") {
-    document.getElementById("mentorFields").style.display = "block";
+    // ROLE BASED UI
+    if (user.role === "mentor") {
+      const mentorFields = document.getElementById("mentorFields");
+      if (mentorFields) {
+        mentorFields.style.display = "block";
+        document.getElementById("p_company").innerText = user.company || "-";
+        document.getElementById("p_exp").innerText = user.experienceYears ? `${user.experienceYears} years` : "-";
+        document.getElementById("p_expertise").innerText = (user.expertise || []).join(", ") || "-";
+      }
+    }
 
-    document.getElementById("p_company").innerText = user.company || "-";
-    document.getElementById("p_exp").innerText = user.experienceYears || "-";
-    document.getElementById("p_expertise").innerText = (user.expertise || []).join(", ");
-  }
-
-  if (user.role === "entrepreneur") {
-    document.getElementById("entrepreneurFields").style.display = "block";
-
-    document.getElementById("p_startup").innerText = user.startupName || "-";
-    document.getElementById("p_idea").innerText = user.idea || "-";
-    document.getElementById("p_industry").innerText = user.industry || "-";
+    if (user.role === "entrepreneur") {
+      const entrepreneurFields = document.getElementById("entrepreneurFields");
+      if (entrepreneurFields) {
+        entrepreneurFields.style.display = "block";
+        document.getElementById("p_startup").innerText = user.startupName || "-";
+        document.getElementById("p_idea").innerText = user.idea || "-";
+        document.getElementById("p_industry").innerText = user.industry || "-";
+      }
+    }
+  } catch (err) {
+    showToast("Failed to load profile", "error");
   }
 }
 
@@ -658,75 +914,265 @@ function goToUpdate() {
 }
 
 async function loadUpdateForm() {
-  const token = localStorage.getItem("token");
+  if (!requireAuth()) return;
 
-  const res = await fetch(`${API}/auth/profile`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  try {
+    const res = await fetch(`${API}/auth/profile`, {
+      headers: authHeaders()
+    });
 
-  const user = await res.json();
+    const user = await res.json();
 
-  // COMMON
-  document.getElementById("u_name").value = user.name || "";
-  document.getElementById("u_bio").value = user.bio || "";
-  document.getElementById("u_skills").value = (user.skills || []).join(", ");
+    // COMMON
+    document.getElementById("u_name").value = user.name || "";
+    document.getElementById("u_bio").value = user.bio || "";
+    document.getElementById("u_skills").value = (user.skills || []).join(", ");
 
-  // ROLE BASED
-  if (user.role === "mentor") {
-    document.getElementById("u_mentorFields").style.display = "block";
+    // ROLE BASED
+    if (user.role === "mentor") {
+      const mentorFields = document.getElementById("u_mentorFields");
+      if (mentorFields) {
+        mentorFields.style.display = "block";
+        document.getElementById("u_company").value = user.company || "";
+        document.getElementById("u_exp").value = user.experienceYears || "";
+        document.getElementById("u_expertise").value = (user.expertise || []).join(", ");
+      }
+    }
 
-    document.getElementById("u_company").value = user.company || "";
-    document.getElementById("u_exp").value = user.experienceYears || "";
-    document.getElementById("u_expertise").value = (user.expertise || []).join(", ");
-  }
-
-  if (user.role === "entrepreneur") {
-    document.getElementById("u_entrepreneurFields").style.display = "block";
-
-    document.getElementById("u_startup").value = user.startupName || "";
-    document.getElementById("u_idea").value = user.idea || "";
-    document.getElementById("u_industry").value = user.industry || "";
+    if (user.role === "entrepreneur") {
+      const entrepreneurFields = document.getElementById("u_entrepreneurFields");
+      if (entrepreneurFields) {
+        entrepreneurFields.style.display = "block";
+        document.getElementById("u_startup").value = user.startupName || "";
+        document.getElementById("u_idea").value = user.idea || "";
+        document.getElementById("u_industry").value = user.industry || "";
+      }
+    }
+  } catch (err) {
+    showToast("Failed to load profile data", "error");
   }
 }
 
 async function updateProfile() {
-  const token = localStorage.getItem("token");
+  if (!requireAuth()) return;
 
   const body = {
     name: document.getElementById("u_name").value,
     bio: document.getElementById("u_bio").value,
-    skills: document.getElementById("u_skills").value.split(",").map(s => s.trim())
+    skills: document.getElementById("u_skills").value.split(",").map(s => s.trim()).filter(s => s)
   };
 
-  // mentor fields
-  if (document.getElementById("u_mentorFields").style.display === "block") {
+  // Mentor fields
+  const mentorFields = document.getElementById("u_mentorFields");
+  if (mentorFields && mentorFields.style.display === "block") {
     body.company = document.getElementById("u_company").value;
-    body.experienceYears = Number(document.getElementById("u_exp").value);
-    body.expertise = document.getElementById("u_expertise").value.split(",").map(s => s.trim());
+    body.experienceYears = Number(document.getElementById("u_exp").value) || 0;
+    body.expertise = document.getElementById("u_expertise").value.split(",").map(s => s.trim()).filter(s => s);
   }
 
-  // entrepreneur fields
-  if (document.getElementById("u_entrepreneurFields").style.display === "block") {
+  // Entrepreneur fields
+  const entrepreneurFields = document.getElementById("u_entrepreneurFields");
+  if (entrepreneurFields && entrepreneurFields.style.display === "block") {
     body.startupName = document.getElementById("u_startup").value;
     body.idea = document.getElementById("u_idea").value;
     body.industry = document.getElementById("u_industry").value;
   }
 
-  const res = await fetch(`${API}/auth/profile`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(body)
-  });
+  try {
+    const res = await fetch(`${API}/auth/profile`, {
+      method: "PUT",
+      headers: jsonAuthHeaders(),
+      body: JSON.stringify(body)
+    });
 
-  if (res.ok) {
-    alert("Profile updated successfully");
-    window.location.href = "profile.html";
-  } else {
-    alert("Update failed");
+    if (res.ok) {
+      showToast("Profile updated successfully!", "success");
+      setTimeout(() => window.location.href = "profile.html", 800);
+    } else {
+      showToast("Update failed", "error");
+    }
+  } catch (err) {
+    showToast("Network error", "error");
   }
 }
 
-loadCurrentUserName();
+async function changePassword(e) {
+  e.preventDefault();
+  if (!requireAuth()) return;
+
+  const currentPassword = document.getElementById("u_current_password").value;
+  const newPassword = document.getElementById("u_new_password").value;
+
+  if (!currentPassword || !newPassword) {
+    showToast("Please enter both current and new password", "warning");
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    showToast("New password must be at least 6 characters", "warning");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/auth/change-password`, {
+      method: "PUT",
+      headers: jsonAuthHeaders(),
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      showToast("Password updated successfully!", "success");
+      document.getElementById("u_current_password").value = "";
+      document.getElementById("u_new_password").value = "";
+    } else {
+      showToast(data.message || "Failed to update password", "error");
+    }
+  } catch (err) {
+    showToast("Network error", "error");
+  }
+}
+
+// ================= MEETINGS =================
+
+async function loadMeetingsPage() {
+  if (!requireAuth()) return;
+
+  // Populate participant dropdown from connections
+  try {
+    const userId = getUserIdFromToken();
+    const res = await fetch(`${API}/connections`, {
+      headers: authHeaders()
+    });
+
+    const data = await res.json();
+    const select = document.getElementById("participantId");
+
+    if (select) {
+      select.innerHTML = `<option value="">Select a connection</option>`;
+
+      data.connections.forEach(conn => {
+        const otherUser = conn.sender._id === userId ? conn.receiver : conn.sender;
+        const option = document.createElement("option");
+        option.value = otherUser._id;
+        option.textContent = otherUser.name;
+        select.appendChild(option);
+      });
+    }
+  } catch (err) {
+    console.error("Error populating participants:", err);
+  }
+
+  // Load existing meetings
+  try {
+    const res = await fetch(`${API}/meetings`, {
+      headers: authHeaders()
+    });
+
+    const meetings = await res.json();
+    const meetingsList = document.getElementById("meetingsList");
+
+    if (meetingsList) {
+      meetingsList.innerHTML = "";
+
+      if (!meetings.length) {
+        meetingsList.innerHTML = `<div class="empty-state"><p>No meetings scheduled yet</p></div>`;
+      } else {
+        meetings.forEach(meet => {
+          const div = document.createElement("div");
+          div.classList.add("meeting-item");
+
+          const participants = meet.participants
+            ? meet.participants.map(p => escapeHtml(p.name)).join(", ")
+            : "";
+
+          div.innerHTML = `
+            <div class="meeting-details">
+              <div class="meeting-date-time">
+                <strong>${escapeHtml(meet.date)}</strong>
+                <span class="meeting-separator">-</span>
+                <span>${escapeHtml(meet.time)}</span>
+              </div>
+              ${participants ? `<p class="meeting-participants">With: ${participants}</p>` : ""}
+            </div>
+            <a href="${escapeHtml(meet.link)}" target="_blank" class="btn-small">Join</a>
+          `;
+          meetingsList.appendChild(div);
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Error loading meetings:", err);
+  }
+}
+
+async function createMeeting() {
+  if (!requireAuth()) return;
+
+  const participantId = document.getElementById("participantId").value;
+  const date = document.getElementById("date").value;
+  const time = document.getElementById("time").value;
+  const link = document.getElementById("link").value;
+
+  if (!participantId || !date || !time || !link) {
+    showToast("Please fill in all fields", "warning");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/meetings/create`, {
+      method: "POST",
+      headers: jsonAuthHeaders(),
+      body: JSON.stringify({ participantId, date, time, link })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      showToast("Meeting scheduled!", "success");
+      // Clear form
+      document.getElementById("participantId").value = "";
+      document.getElementById("date").value = "";
+      document.getElementById("time").value = "";
+      document.getElementById("link").value = "";
+
+      // Reload meetings list
+      loadMeetingsPage();
+    } else {
+      showToast(data.message || "Failed to create meeting", "error");
+    }
+  } catch (err) {
+    showToast("Network error", "error");
+  }
+}
+
+// ================= PAGE ROUTING =================
+
+// Auto-detect page and call correct initializer
+const currentPage = window.location.pathname.split("/").pop();
+
+if (currentPage === "dashboard.html") {
+  // loadDashboard called from body onload
+} else if (currentPage === "chat.html") {
+  // loadChat called from body onload
+} else if (currentPage === "connections.html") {
+  // loadConnections called from body onload
+} else if (currentPage === "meetings.html") {
+  // loadMeetingsPage called from body onload
+}
+
+// Allow Enter key on search
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    const searchInput = document.getElementById("searchInput");
+    if (searchInput && document.activeElement === searchInput) {
+      handleSearch();
+    }
+
+    const msgInput = document.getElementById("message");
+    if (msgInput && document.activeElement === msgInput) {
+      sendMessage();
+    }
+  }
+});

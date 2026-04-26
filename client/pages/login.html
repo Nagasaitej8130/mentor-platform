@@ -1,32 +1,30 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-  <title>Login</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Login to MentorConnect - Your mentoring platform">
+  <title>Login | MentorConnect</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 
 <body class="auth-body">
 
   <div class="auth-container">
+    <div class="auth-card">
+      <h2 class="auth-title">Welcome Back</h2>
+      <p class="auth-subtitle">Login to MentorConnect</p>
 
-```
-<div class="auth-card">
-  <h2 class="auth-title">Welcome Back</h2>
-  <p class="auth-subtitle">Login to MentorConnect</p>
+      <input id="email" type="email" placeholder="Email address" />
+      <input id="password" type="password" placeholder="Password" />
 
-  <input id="email" type="email" placeholder="Email" />
-  <input id="password" type="password" placeholder="Password" />
+      <button onclick="login()" class="auth-btn">Login</button>
 
-  <button onclick="login()" class="auth-btn">Login</button>
-
-  <p class="auth-footer">
-    Don't have an account?
-    <a href="register.html">Register</a>
-  </p>
-</div>
-```
-
+      <p class="auth-footer">
+        Don't have an account?
+        <a href="register.html">Register</a>
+      </p>
+    </div>
   </div>
 
   <script src="../js/main.js"></script>

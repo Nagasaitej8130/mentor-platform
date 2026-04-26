@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-  <title>Profile</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Your MentorConnect profile">
+  <title>Profile | MentorConnect</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 
@@ -11,53 +13,84 @@
 <div class="layout">
 
   <!-- SIDEBAR -->
-
   <div id="sidebar"></div>
 
   <!-- MAIN -->
-
   <div class="main">
 
-```
-<!-- NAVBAR -->
-<div id="navbar"></div>
+    <!-- NAVBAR -->
+    <div id="navbar"></div>
 
-<!-- CONTENT -->
-<section class="content">
+    <!-- CONTENT -->
+    <section class="content">
 
-  <div class="card">
-    <h3>Your Profile</h3>
+      <div class="card profile-card">
+        <h3>Your Profile</h3>
 
-    <p><strong>Name:</strong> <span id="p_name"></span></p>
-    <p><strong>Email:</strong> <span id="p_email"></span></p>
-    <p><strong>Role:</strong> <span id="p_role"></span></p>
+        <div class="profile-field">
+          <span class="profile-label">Name</span>
+          <span class="profile-value" id="p_name">-</span>
+        </div>
 
-    <p><strong>Bio:</strong> <span id="p_bio"></span></p>
-    <p><strong>Skills:</strong> <span id="p_skills"></span></p>
+        <div class="profile-field">
+          <span class="profile-label">Email</span>
+          <span class="profile-value" id="p_email">-</span>
+        </div>
 
-    <!-- Mentor Fields -->
-    <div id="mentorFields" style="display:none;">
-      <p><strong>Company:</strong> <span id="p_company"></span></p>
-      <p><strong>Experience:</strong> <span id="p_exp"></span></p>
-      <p><strong>Expertise:</strong> <span id="p_expertise"></span></p>
-    </div>
+        <div class="profile-field">
+          <span class="profile-label">Role</span>
+          <span class="profile-value" id="p_role">-</span>
+        </div>
 
-    <!-- Entrepreneur Fields -->
-    <div id="entrepreneurFields" style="display:none;">
-      <p><strong>Startup:</strong> <span id="p_startup"></span></p>
-      <p><strong>Idea:</strong> <span id="p_idea"></span></p>
-      <p><strong>Industry:</strong> <span id="p_industry"></span></p>
-    </div>
+        <div class="profile-field">
+          <span class="profile-label">Bio</span>
+          <span class="profile-value" id="p_bio">-</span>
+        </div>
 
-    <br>
+        <div class="profile-field">
+          <span class="profile-label">Skills</span>
+          <span class="profile-value" id="p_skills">-</span>
+        </div>
 
-    <button onclick="goToUpdate()">Update Profile</button>
-    <button onclick="logout()">Logout</button>
+        <!-- Mentor Fields -->
+        <div id="mentorFields" style="display:none;">
+          <div class="profile-field">
+            <span class="profile-label">Company</span>
+            <span class="profile-value" id="p_company">-</span>
+          </div>
+          <div class="profile-field">
+            <span class="profile-label">Experience</span>
+            <span class="profile-value" id="p_exp">-</span>
+          </div>
+          <div class="profile-field">
+            <span class="profile-label">Expertise</span>
+            <span class="profile-value" id="p_expertise">-</span>
+          </div>
+        </div>
 
-  </div>
+        <!-- Entrepreneur Fields -->
+        <div id="entrepreneurFields" style="display:none;">
+          <div class="profile-field">
+            <span class="profile-label">Startup</span>
+            <span class="profile-value" id="p_startup">-</span>
+          </div>
+          <div class="profile-field">
+            <span class="profile-label">Idea</span>
+            <span class="profile-value" id="p_idea">-</span>
+          </div>
+          <div class="profile-field">
+            <span class="profile-label">Industry</span>
+            <span class="profile-value" id="p_industry">-</span>
+          </div>
+        </div>
 
-</section>
-```
+        <div class="profile-actions">
+          <button onclick="goToUpdate()">Edit Profile</button>
+          <button class="btn-danger" onclick="logout()">Logout</button>
+        </div>
+      </div>
+
+    </section>
 
   </div>
 

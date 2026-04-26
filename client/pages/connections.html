@@ -1,8 +1,10 @@
-<!DOCTYPE html> 
-
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <title>Connections</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manage your connections on MentorConnect">
+  <title>Connections | MentorConnect</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 
@@ -10,49 +12,43 @@
 
 <div class="layout">
 
-  <!-- SIDEBAR (COMPONENT) -->
-
+  <!-- SIDEBAR -->
   <div id="sidebar"></div>
 
   <!-- MAIN -->
-
   <div class="main">
 
-```
-<!-- NAVBAR (COMPONENT) -->
-<div id="navbar"></div>
+    <!-- NAVBAR -->
+    <div id="navbar"></div>
 
-<!-- CONTENT -->
-<section class="content">
+    <!-- CONTENT -->
+    <section class="content">
 
-  <!-- SEARCH -->
-  <div class="card">
-    <h3>Search Connections</h3>
+      <!-- PENDING REQUESTS -->
+      <div class="card">
+        <h3>Pending Requests</h3>
+        <div id="requests"></div>
+      </div>
 
-    <div class="search-box">
-      <input id="connectionSearch" placeholder="Search your connections..." />
-      <button onclick="searchConnections()">Search</button>
-    </div>
+      <!-- MY CONNECTIONS -->
+      <div class="card">
+        <div class="section-header">
+          <h3>My Connections</h3>
+        </div>
+        <input
+          type="text"
+          id="connectionSearch"
+          placeholder="Search connections..."
+          oninput="searchConnections()"
+          style="margin-bottom: 16px;"
+        />
+        <div id="connections"></div>
+      </div>
 
-    <div id="connectionSearchResults"></div>
-  </div>
-
-  <!-- REQUESTS -->
-  <div class="card">
-    <h3>Incoming Requests</h3>
-    <div id="requests"></div>
-  </div>
-
-  <!-- CONNECTIONS -->
-  <div class="card">
-    <h3>Your Connections</h3>
-    <div id="connections"></div>
-  </div>
-
-</section>
-```
+    </section>
 
   </div>
+
 </div>
 
 <script src="../js/main.js"></script>

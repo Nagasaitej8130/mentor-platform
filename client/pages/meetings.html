@@ -1,53 +1,56 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-  <title>Meetings</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Schedule and manage meetings on MentorConnect">
+  <title>Meetings | MentorConnect</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 
-<body onload="loadLayout('Meetings');">
+<body onload="loadLayout('Meetings'); loadMeetingsPage();">
 
 <div class="layout">
 
-  <!-- SIDEBAR (COMPONENT) -->
-
+  <!-- SIDEBAR -->
   <div id="sidebar"></div>
 
   <!-- MAIN -->
-
   <div class="main">
 
-```
-<!-- NAVBAR (COMPONENT) -->
-<div id="navbar"></div>
+    <!-- NAVBAR -->
+    <div id="navbar"></div>
 
-<!-- CONTENT -->
-<section class="content">
+    <!-- CONTENT -->
+    <section class="content">
 
-  <!-- CREATE MEETING -->
-  <div class="card">
-    <h3>Schedule Meeting</h3>
+      <!-- CREATE MEETING -->
+      <div class="card">
+        <h3>Schedule a Meeting</h3>
 
-    <select id="participantId">
-      <option value="">Select User</option>
-    </select>
+        <div class="meeting-form">
+          <select id="participantId" class="full-width">
+            <option value="">Select a connection</option>
+          </select>
 
-    <input id="date" type="date" />
-    <input id="time" placeholder="Time (e.g. 10:00 AM)" />
-    <input id="link" placeholder="Meeting Link" />
+          <input id="date" type="date" />
+          <input id="time" type="time" />
 
-    <button onclick="createMeeting()">Create Meeting</button>
-  </div>
+          <input id="link" type="url" placeholder="Meeting link (e.g. Zoom, Google Meet)" class="full-width" />
 
-  <!-- MEETINGS LIST -->
-  <div class="card">
-    <h3>Your Meetings</h3>
-    <div id="meetingsList"></div>
-  </div>
+          <div class="full-width">
+            <button onclick="createMeeting()">Schedule Meeting</button>
+          </div>
+        </div>
+      </div>
 
-</section>
-```
+      <!-- MEETINGS LIST -->
+      <div class="card">
+        <h3>Your Meetings</h3>
+        <div id="meetingsList"></div>
+      </div>
+
+    </section>
 
   </div>
 
