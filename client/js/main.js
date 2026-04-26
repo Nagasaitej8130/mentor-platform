@@ -1,5 +1,29 @@
 const API = "http://localhost:5000/api";
 
+// ================= GLOBAL STATE =================
+let myConnections = [];
+let sentRequests = [];
+let receivedRequests = [];
+
+//nav bar and side bar loading 
+async function loadLayout(pageTitle) {
+  // SIDEBAR
+  const sidebarRes = await fetch("../components/sidebar.html");
+  const sidebarHtml = await sidebarRes.text();
+  document.getElementById("sidebar").innerHTML = sidebarHtml;
+
+  // NAVBAR
+  const navRes = await fetch("../components/navbar.html");
+  const navHtml = await navRes.text();
+  document.getElementById("navbar").innerHTML = navHtml;
+
+  // Set page title
+  const titleEl = document.getElementById("pageTitle");
+  if (titleEl) titleEl.innerText = pageTitle;
+
+  // Load user name
+  loadCurrentUserName();
+}
 // ================= AUTH =================
 
 // LOGIN
@@ -58,9 +82,12 @@ function logout() {
 async function loadDashboard() {
   const token = localStorage.getItem("token");
 
+  // 🔥 load connections first
+  await loadConnections();
+
   // suggestions
   const res1 = await fetch(`${API}/match`, {
-    headers: { Authorization: token }
+    headers: { Authorization: `Bearer ${token}` }
   });
   const suggestions = await res1.json();
 
@@ -71,18 +98,29 @@ async function loadDashboard() {
     const user = item.user;
 
     const div = document.createElement("div");
-    div.innerHTML = `
-      <p><b>${user.name}</b> (${user.role})</p>
-      <button onclick="sendRequest('${user._id}')">Connect</button>
-      <hr/>
-    `;
+div.classList.add("user-card");
+
+const role = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+
+div.innerHTML = `
+  <div class="user-info">
+    <p class="user-name">${user.name}</p>
+    <p class="user-role">${role}</p>
+  </div>
+
+  <div class="user-actions">
+    <button onclick="sendRequest('${user._id}')">Connect</button>
+  </div>
+`;
     suggestionsDiv.appendChild(div);
-    loadNotifications();
   });
+
+  // 🔔 notifications
+  loadNotifications();
 
   // meetings
   const res2 = await fetch(`${API}/meetings`, {
-    headers: { Authorization: token }
+    headers: { Authorization: `Bearer ${token}` }
   });
   const meetings = await res2.json();
 
@@ -103,7 +141,9 @@ async function loadDashboard() {
 if (window.location.pathname.includes("dashboard.html")) {
   loadDashboard();
 }
-
+if (window.location.pathname.includes("chat.html")) {
+  loadChat();
+}
 // ================= CONNECTIONS =================
 
 async function sendRequest(receiverId) {
@@ -113,19 +153,24 @@ async function sendRequest(receiverId) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: token
+      Authorization: `Bearer ${token}`
     },
     body: JSON.stringify({ receiverId })
   });
 
-  alert("Request sent");
+  await loadConnections();
+
+ if (searchInput && searchInput.value.trim()) {
+  searchUsers(searchInput.value.trim());
+}
 }
 
 async function loadConnections() {
   const token = localStorage.getItem("token");
+  const userId = getUserIdFromToken();
 
   const res = await fetch(`${API}/connections`, {
-    headers: { Authorization: token }
+    headers: { Authorization: `Bearer ${token}` }
   });
 
   const data = await res.json();
@@ -133,33 +178,48 @@ async function loadConnections() {
   const requestsDiv = document.getElementById("requests");
   const connectionsDiv = document.getElementById("connections");
 
-  requestsDiv.innerHTML = "";
-  connectionsDiv.innerHTML = "";
+  if (requestsDiv) requestsDiv.innerHTML = "";
+  if (connectionsDiv) connectionsDiv.innerHTML = "";
 
-  data.requests.forEach(req => {
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <p>${req.sender.name}</p>
-      <button onclick="respond('${req._id}', 'accept')">Accept</button>
-      <button onclick="respond('${req._id}', 'reject')">Reject</button>
-      <hr/>
-    `;
-    requestsDiv.appendChild(div);
-  });
+  // store states
+  myConnections = data.connections.map(conn =>
+    conn.sender._id === userId
+      ? conn.receiver._id
+      : conn.sender._id
+  );
 
-  data.connections.forEach(conn => {
-    const otherUser =
-      conn.sender._id === getUserIdFromToken()
-        ? conn.receiver
-        : conn.sender;
+  sentRequests = data.sentRequests.map(r => r.receiver._id);
+  receivedRequests = data.requests.map(r => r.sender._id);
 
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <p>${otherUser.name} (${otherUser.role})</p>
-      <hr/>
-    `;
-    connectionsDiv.appendChild(div);
-  });
+  if (requestsDiv && connectionsDiv) {
+    data.requests.forEach(req => {
+      const div = document.createElement("div");
+      div.innerHTML = `
+        <p>${req.sender.name}</p>
+        <button onclick="respond('${req._id}', 'accept')">Accept</button>
+        <button onclick="respond('${req._id}', 'reject')">Reject</button>
+        <hr/>
+      `;
+      requestsDiv.appendChild(div);
+    });
+
+    data.connections.forEach(conn => {
+  const otherUser =
+    conn.sender._id === userId
+      ? conn.receiver
+      : conn.sender;
+
+  const div = document.createElement("div"); // ✅ THIS WAS MISSING
+
+  div.innerHTML = `
+    <p onclick="selectChatUser(this, '${otherUser._id}', '${otherUser.name}')">
+      ${otherUser.name}
+    </p>
+  `;
+
+  connectionsDiv.appendChild(div);
+});
+  }
 }
 
 async function respond(requestId, action) {
@@ -169,20 +229,16 @@ async function respond(requestId, action) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: token
+      Authorization: `Bearer ${token}`
     },
     body: JSON.stringify({ requestId, action })
   });
 
-  alert(`Request ${action}ed`);
-  loadConnections();
-}
-
-if (window.location.pathname.includes("connections.html")) {
-  loadConnections();
+  await loadConnections();
 }
 
 // ================= CHAT =================
+// (unchanged)
 
 let socket;
 let currentUserId;
@@ -193,43 +249,59 @@ async function loadChat() {
   const token = localStorage.getItem("token");
 
   const resUser = await fetch(`${API}/auth/profile`, {
-    headers: { Authorization: token }
+    headers: { Authorization: `Bearer ${token}` }
   });
   const user = await resUser.json();
   currentUserId = user._id;
 
-  socket = io("https://mentor-platform-vbmq.onrender.com/");
+  socket = io("http://localhost:5000");
 
   socket.on("receiveMessage", (data) => {
     displayMessage(data.senderId, data.message);
   });
 
   const res = await fetch(`${API}/connections`, {
-    headers: { Authorization: token }
+    headers: { Authorization: `Bearer ${token}` }
   });
 
   const data = await res.json();
   const usersDiv = document.getElementById("users");
 
-  data.connections.forEach(conn => {
-    const otherUser =
-      conn.sender._id === currentUserId
-        ? conn.receiver
-        : conn.sender;
+  usersDiv.innerHTML = "";
 
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <p onclick="openChat('${otherUser._id}', '${otherUser.name}')">
-        ${otherUser.name}
-      </p>
-    `;
-    usersDiv.appendChild(div);
+  data.connections.forEach(conn => {
+  const otherUser =
+    conn.sender._id === currentUserId
+      ? conn.receiver
+      : conn.sender;
+
+  const p = document.createElement("p"); // ✅ no div confusion
+
+  p.innerText = otherUser.name;
+
+  p.onclick = function () {
+    selectChatUser(p, otherUser._id, otherUser.name);
+  };
+
+  usersDiv.appendChild(p);
+});
+}
+
+function selectChatUser(element, userId, name) {
+  // remove previous active
+  document.querySelectorAll("#users p").forEach(p => {
+    p.classList.remove("active-chat-user");
   });
+
+  element.classList.add("active-chat-user");
+
+  // 🔥 THIS MUST PASS NAME
+  openChat(userId, name);
 }
 
 async function openChat(userId, name) {
   selectedUserId = userId;
-  document.getElementById("chatWith").innerText = "Chat with " + name;
+  document.getElementById("chatUserName").innerText = name;
 
   roomId = [currentUserId, selectedUserId].sort().join("_");
 
@@ -237,7 +309,7 @@ async function openChat(userId, name) {
 
   const token = localStorage.getItem("token");
   const res = await fetch(`${API}/messages/${userId}`, {
-    headers: { Authorization: token }
+    headers: { Authorization: `Bearer ${token}` }
   });
 
   const messages = await res.json();
@@ -252,7 +324,6 @@ async function openChat(userId, name) {
 
 function sendMessage() {
   const message = document.getElementById("message").value;
-
   if (!message.trim()) return;
 
   socket.emit("sendMessage", {
@@ -267,127 +338,177 @@ function sendMessage() {
 
 function displayMessage(senderId, message) {
   const li = document.createElement("li");
-  const label = senderId === currentUserId ? "You" : "Them";
-  li.innerText = `${label}: ${message}`;
-  document.getElementById("messages").appendChild(li);
-}
 
-if (window.location.pathname.includes("chat.html")) {
-  loadChat();
-}
+  // base class
+  li.classList.add("message");
 
-// ================= MEETINGS =================
-
-async function loadMeetings() {
-  const token = localStorage.getItem("token");
-  const userId = getUserIdFromToken();
-
-  // load connections → dropdown
-  const resConn = await fetch(`${API}/connections`, {
-    headers: { Authorization: token }
-  });
-
-  const connData = await resConn.json();
-
-  const dropdown = document.getElementById("participantId");
-  dropdown.innerHTML = `<option value="">Select User</option>`;
-
-  if (connData.connections.length === 0) {
-    dropdown.innerHTML = `<option>No connections available</option>`;
+  // alignment
+  if (senderId === currentUserId) {
+    li.classList.add("sent");
+    li.innerText = message; // no "You:" needed
+  } else {
+    li.classList.add("received");
+    li.innerText = message;
   }
 
-  connData.connections.forEach(conn => {
-    const otherUser =
-      conn.sender._id === userId
-        ? conn.receiver
-        : conn.sender;
+  const messages = document.getElementById("messages");
+  messages.appendChild(li);
 
-    const option = document.createElement("option");
-    option.value = otherUser._id;
-    option.textContent = `${otherUser.name} (${otherUser.email})`;
+  // auto scroll to latest message
+  messages.scrollTop = messages.scrollHeight;
+}
 
-    dropdown.appendChild(option);
-  });
+function filterChatUsers() {
+  const query = document.getElementById("chatSearch").value.toLowerCase();
+  const users = document.querySelectorAll("#users p");
 
-  // load meetings
-  const resMeet = await fetch(`${API}/meetings`, {
-    headers: { Authorization: token }
-  });
-
-  const meetings = await resMeet.json();
-
-  const meetingsDiv = document.getElementById("meetingsList");
-  meetingsDiv.innerHTML = "";
-
-  meetings.forEach(m => {
-    const otherUser = m.participants.find(p => p._id !== userId);
-
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <p>
-        <b>With:</b> ${otherUser?.name || "Unknown"} <br/>
-        <b>Date:</b> ${m.date} <br/>
-        <b>Time:</b> ${m.time}
-      </p>
-      <a href="${m.link}" target="_blank">Join Meeting</a>
-      <hr/>
-    `;
-    meetingsDiv.appendChild(div);
+  users.forEach(user => {
+    const name = user.innerText.toLowerCase();
+    user.style.display = name.includes(query) ? "block" : "none";
   });
 }
 
-// CREATE MEETING
-async function createMeeting() {
+// ================= SEARCH =================
+
+const searchInput = document.getElementById("searchInput");
+const searchResults = document.getElementById("searchResults");
+
+async function searchUsers(query) {
   const token = localStorage.getItem("token");
 
-  const participantId = document.getElementById("participantId").value;
-  const date = document.getElementById("date").value;
-  const time = document.getElementById("time").value;
-  const link = document.getElementById("link").value;
+  const res = await fetch(`${API}/users/search?q=${query}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
 
-  if (!participantId || !date || !time || !link) {
-    alert("Please fill all fields");
+  const users = await res.json();
+
+  displaySearchResults(users);
+}
+
+
+function displaySearchResults(users) {
+  searchResults.innerHTML = "";
+
+  if (!users.length) {
+    searchResults.innerHTML = "<p>No users found</p>";
     return;
   }
 
-  await fetch(`${API}/meetings/create`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token
-    },
-    body: JSON.stringify({ participantId, date, time, link })
+  users.forEach(user => {
+    const div = document.createElement("div");
+
+    const isConnected = myConnections.includes(user._id);
+    const isSent = sentRequests.includes(user._id);
+    const isReceived = receivedRequests.includes(user._id);
+
+    let btn = "";
+
+    if (isConnected) {
+      btn = `<button onclick="startChatFromSearch('${user._id}', '${user.name}')">Message</button>`;
+    } 
+    else if (isSent) {
+      btn = `<button disabled>Requested</button>`;
+    } 
+    else if (isReceived) {
+      btn = `
+        <button onclick="acceptFromSearch('${user._id}')">Accept</button>
+        <button onclick="rejectFromSearch('${user._id}')">Reject</button>
+      `;
+    } 
+    else {
+      btn = `<button onclick="sendRequest('${user._id}')">Connect</button>`;
+    }
+
+    div.classList.add("user-card");
+
+div.innerHTML = `
+  <div class="user-info">
+    <p class="user-name">${user.name}</p>
+    <p class="user-role">${user.role}</p>
+  </div>
+
+  <div class="user-actions">
+    ${btn}
+  </div>
+`;
+
+    searchResults.appendChild(div);
+  });
+}
+
+// SEARCH ACTIONS
+async function acceptFromSearch(userId) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/connections`, {
+    headers: { Authorization: `Bearer ${token}` }
   });
 
-  alert("Meeting created");
-  loadMeetings();
+  const data = await res.json();
+
+  const request = data.requests.find(r => r.sender._id === userId);
+
+  if (!request) return;
+
+  await respond(request._id, "accept");
 }
 
-if (window.location.pathname.includes("meetings.html")) {
-  loadMeetings();
-}
-
-// ================= HELPER =================
-
-function getUserIdFromToken() {
+async function rejectFromSearch(userId) {
   const token = localStorage.getItem("token");
-  const payload = JSON.parse(atob(token.split('.')[1]));
-  return payload.id;
+
+  const res = await fetch(`${API}/connections`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  const data = await res.json();
+
+  const request = data.requests.find(r => r.sender._id === userId);
+
+  if (!request) return;
+
+  await respond(request._id, "reject");
 }
 
+function startChatFromSearch(userId, name) {
+  localStorage.setItem("chatUserId", userId);
+  localStorage.setItem("chatUserName", name);
+  window.location.href = "chat.html";
+}
 
-// LOAD NOTIFICATIONS
+// ================= NOTIFICATIONS =================
+
+// ================= NOTIFICATIONS =================
+
+function renderNotifications(notifs) {
+  const dropdown = document.getElementById("notifDropdown");
+  dropdown.innerHTML = "";
+
+  notifs.forEach(n => {
+    const div = document.createElement("div");
+
+    if (n.type === "request") {
+      div.innerText = `${n.sender.name} sent you a connection request`;
+    } else {
+      div.innerText = n.message || "Notification";
+    }
+
+    dropdown.appendChild(div);
+  });
+}
+
 async function loadNotifications() {
   const token = localStorage.getItem("token");
 
   const res = await fetch(`${API}/notifications`, {
-    headers: { Authorization: token }
+    headers: { Authorization: `Bearer ${token}` }
   });
 
   const data = await res.json();
 
   const dropdown = document.getElementById("notifDropdown");
   const count = document.getElementById("notifCount");
+
+  if (!dropdown || !count) return;
 
   dropdown.innerHTML = "";
 
@@ -400,9 +521,7 @@ async function loadNotifications() {
     div.style.padding = "5px";
     div.style.borderBottom = "1px solid #ddd";
 
-    div.innerHTML = `
-      <p>${n.message}</p>
-    `;
+    div.innerHTML = `<p>${n.message}</p>`;
 
     dropdown.appendChild(div);
   });
@@ -410,25 +529,204 @@ async function loadNotifications() {
   count.innerText = unread > 0 ? `(${unread})` : "";
 }
 
-// TOGGLE DROPDOWN
-function toggleNotifications() {
+async function toggleNotifications() {
   const dropdown = document.getElementById("notifDropdown");
 
-  if (dropdown.style.display === "none") {
-    dropdown.style.display = "block";
-    loadNotifications();
-    markNotificationsRead();
-  } else {
+  if (dropdown.style.display === "block") {
     dropdown.style.display = "none";
+    return;
   }
+
+  dropdown.style.display = "block";
+
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/notifications`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  const notifications = await res.json();
+
+  renderNotifications(notifications);
 }
 
-// MARK AS READ
 async function markNotificationsRead() {
   const token = localStorage.getItem("token");
 
   await fetch(`${API}/notifications/read`, {
     method: "PUT",
-    headers: { Authorization: token }
+    headers: { Authorization: `Bearer ${token}` }
   });
 }
+
+async function loadCurrentUserName() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API}/auth/profile`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const user = await res.json();
+
+    const nameEl = document.getElementById("currentUserName");
+    if (nameEl) {
+      nameEl.innerText = user.name;
+    }
+  } catch (err) {
+    console.error("Error loading user:", err);
+  }
+}
+
+// ================= HELPER =================
+
+function getUserIdFromToken() {
+  const token = localStorage.getItem("token");
+  const payload = JSON.parse(atob(token.split(".")[1]));
+  return payload.id;
+}
+
+function handleSearch() {
+  const query = document.getElementById("searchInput").value.trim();
+
+  if (!query) return; // do nothing if empty
+
+  searchUsers(query);
+}
+
+function searchConnections() {
+  const query = document.getElementById("connectionSearch").value.toLowerCase();
+  const container = document.getElementById("connections");
+
+  if (!query) {
+    loadConnections(); // reload full list
+    return;
+  }
+
+  const cards = container.getElementsByClassName("user-card");
+
+  for (let card of cards) {
+    const name = card.querySelector(".user-name").innerText.toLowerCase();
+
+    if (name.includes(query)) {
+      card.style.display = "flex";
+    } else {
+      card.style.display = "none";
+    }
+  }
+}
+if (window.location.pathname.includes("connections.html")) {
+  loadConnections();
+}
+
+async function loadProfile() {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/auth/profile`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  const user = await res.json();
+
+  document.getElementById("p_name").innerText = user.name;
+  document.getElementById("p_email").innerText = user.email;
+  document.getElementById("p_role").innerText = user.role;
+  document.getElementById("p_bio").innerText = user.bio || "-";
+  document.getElementById("p_skills").innerText = (user.skills || []).join(", ");
+
+  // ROLE BASED UI
+  if (user.role === "mentor") {
+    document.getElementById("mentorFields").style.display = "block";
+
+    document.getElementById("p_company").innerText = user.company || "-";
+    document.getElementById("p_exp").innerText = user.experienceYears || "-";
+    document.getElementById("p_expertise").innerText = (user.expertise || []).join(", ");
+  }
+
+  if (user.role === "entrepreneur") {
+    document.getElementById("entrepreneurFields").style.display = "block";
+
+    document.getElementById("p_startup").innerText = user.startupName || "-";
+    document.getElementById("p_idea").innerText = user.idea || "-";
+    document.getElementById("p_industry").innerText = user.industry || "-";
+  }
+}
+
+function goToUpdate() {
+  window.location.href = "update.html";
+}
+
+async function loadUpdateForm() {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/auth/profile`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  const user = await res.json();
+
+  // COMMON
+  document.getElementById("u_name").value = user.name || "";
+  document.getElementById("u_bio").value = user.bio || "";
+  document.getElementById("u_skills").value = (user.skills || []).join(", ");
+
+  // ROLE BASED
+  if (user.role === "mentor") {
+    document.getElementById("u_mentorFields").style.display = "block";
+
+    document.getElementById("u_company").value = user.company || "";
+    document.getElementById("u_exp").value = user.experienceYears || "";
+    document.getElementById("u_expertise").value = (user.expertise || []).join(", ");
+  }
+
+  if (user.role === "entrepreneur") {
+    document.getElementById("u_entrepreneurFields").style.display = "block";
+
+    document.getElementById("u_startup").value = user.startupName || "";
+    document.getElementById("u_idea").value = user.idea || "";
+    document.getElementById("u_industry").value = user.industry || "";
+  }
+}
+
+async function updateProfile() {
+  const token = localStorage.getItem("token");
+
+  const body = {
+    name: document.getElementById("u_name").value,
+    bio: document.getElementById("u_bio").value,
+    skills: document.getElementById("u_skills").value.split(",").map(s => s.trim())
+  };
+
+  // mentor fields
+  if (document.getElementById("u_mentorFields").style.display === "block") {
+    body.company = document.getElementById("u_company").value;
+    body.experienceYears = Number(document.getElementById("u_exp").value);
+    body.expertise = document.getElementById("u_expertise").value.split(",").map(s => s.trim());
+  }
+
+  // entrepreneur fields
+  if (document.getElementById("u_entrepreneurFields").style.display === "block") {
+    body.startupName = document.getElementById("u_startup").value;
+    body.idea = document.getElementById("u_idea").value;
+    body.industry = document.getElementById("u_industry").value;
+  }
+
+  const res = await fetch(`${API}/auth/profile`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (res.ok) {
+    alert("Profile updated successfully");
+    window.location.href = "profile.html";
+  } else {
+    alert("Update failed");
+  }
+}
+
+loadCurrentUserName();

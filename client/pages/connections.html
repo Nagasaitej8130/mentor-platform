@@ -1,20 +1,59 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
+
 <html>
 <head>
   <title>Connections</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
 
-<h2>Connections</h2>
+<body onload="loadLayout('Connections'); loadConnections();">
 
-<button onclick="logout()">Logout</button>
+<div class="layout">
 
-<h3>Requests</h3>
-<div id="requests"></div>
+  <!-- SIDEBAR (COMPONENT) -->
 
-<h3>Your Connections</h3>
-<div id="connections"></div>
+  <div id="sidebar"></div>
+
+  <!-- MAIN -->
+
+  <div class="main">
+
+```
+<!-- NAVBAR (COMPONENT) -->
+<div id="navbar"></div>
+
+<!-- CONTENT -->
+<section class="content">
+
+  <!-- SEARCH -->
+  <div class="card">
+    <h3>Search Connections</h3>
+
+    <div class="search-box">
+      <input id="connectionSearch" placeholder="Search your connections..." />
+      <button onclick="searchConnections()">Search</button>
+    </div>
+
+    <div id="connectionSearchResults"></div>
+  </div>
+
+  <!-- REQUESTS -->
+  <div class="card">
+    <h3>Incoming Requests</h3>
+    <div id="requests"></div>
+  </div>
+
+  <!-- CONNECTIONS -->
+  <div class="card">
+    <h3>Your Connections</h3>
+    <div id="connections"></div>
+  </div>
+
+</section>
+```
+
+  </div>
+</div>
 
 <script src="../js/main.js"></script>
 

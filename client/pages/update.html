@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Update Profile</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body onload="loadLayout('Update Profile'); loadUpdateForm();">
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+
+  <div id="sidebar"></div>
+
+  <!-- MAIN -->
+
+  <div class="main">
+
+```
+<!-- NAVBAR -->
+<div id="navbar"></div>
+
+<!-- CONTENT -->
+<section class="content">
+
+  <div class="card">
+    <h3>Edit Profile</h3>
+
+    <!-- COMMON -->
+    <input id="u_name" placeholder="Name" />
+    <textarea id="u_bio" placeholder="Bio"></textarea>
+    <input id="u_skills" placeholder="Skills (comma separated)" />
+
+    <!-- MENTOR -->
+    <div id="u_mentorFields" style="display:none;">
+      <input id="u_company" placeholder="Company" />
+      <input id="u_exp" placeholder="Experience (years)" />
+      <input id="u_expertise" placeholder="Expertise (comma separated)" />
+    </div>
+
+    <!-- ENTREPRENEUR -->
+    <div id="u_entrepreneurFields" style="display:none;">
+      <input id="u_startup" placeholder="Startup Name" />
+      <input id="u_idea" placeholder="Idea" />
+      <input id="u_industry" placeholder="Industry" />
+    </div>
+
+    <br>
+
+    <button onclick="updateProfile()">Save</button>
+    <button onclick="window.location.href='profile.html'">Cancel</button>
+
+  </div>
+
+</section>
+```
+
+  </div>
+
+</div>
+
+<script src="../js/main.js"></script>
+
+</body>
+</html>

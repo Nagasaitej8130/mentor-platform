@@ -1,28 +1,57 @@
 <!DOCTYPE html>
+
 <html>
 <head>
   <title>Meetings</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
 
-<h2>Meetings</h2>
+<body onload="loadLayout('Meetings');">
 
-<button onclick="logout()">Logout</button>
+<div class="layout">
 
-<h3>Schedule Meeting</h3>
+  <!-- SIDEBAR (COMPONENT) -->
 
-<select id="participantId">
-  <option value="">Select User</option>
-</select>
-<input id="date" type="date" />
-<input id="time" placeholder="Time (e.g. 10:00 AM)" />
-<input id="link" placeholder="Meeting Link" />
+  <div id="sidebar"></div>
 
-<button onclick="createMeeting()">Create Meeting</button>
+  <!-- MAIN -->
 
-<h3>Your Meetings</h3>
-<div id="meetingsList"></div>
+  <div class="main">
+
+```
+<!-- NAVBAR (COMPONENT) -->
+<div id="navbar"></div>
+
+<!-- CONTENT -->
+<section class="content">
+
+  <!-- CREATE MEETING -->
+  <div class="card">
+    <h3>Schedule Meeting</h3>
+
+    <select id="participantId">
+      <option value="">Select User</option>
+    </select>
+
+    <input id="date" type="date" />
+    <input id="time" placeholder="Time (e.g. 10:00 AM)" />
+    <input id="link" placeholder="Meeting Link" />
+
+    <button onclick="createMeeting()">Create Meeting</button>
+  </div>
+
+  <!-- MEETINGS LIST -->
+  <div class="card">
+    <h3>Your Meetings</h3>
+    <div id="meetingsList"></div>
+  </div>
+
+</section>
+```
+
+  </div>
+
+</div>
 
 <script src="../js/main.js"></script>
 

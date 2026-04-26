@@ -1,23 +1,35 @@
 <!DOCTYPE html>
+
 <html>
 <head>
   <title>Login</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
 
-<div class="container">
-  <h2>Login</h2>
+<body class="auth-body">
 
-  <input id="email" placeholder="Email" />
+  <div class="auth-container">
+
+```
+<div class="auth-card">
+  <h2 class="auth-title">Welcome Back</h2>
+  <p class="auth-subtitle">Login to MentorConnect</p>
+
+  <input id="email" type="email" placeholder="Email" />
   <input id="password" type="password" placeholder="Password" />
 
-  <button onclick="login()">Login</button>
+  <button onclick="login()" class="auth-btn">Login</button>
 
-  <p>Don't have an account? <a href="register.html">Register</a></p>
+  <p class="auth-footer">
+    Don't have an account?
+    <a href="register.html">Register</a>
+  </p>
 </div>
+```
 
-<script src="../js/main.js"></script>
+  </div>
+
+  <script src="../js/main.js"></script>
 
 </body>
 </html>

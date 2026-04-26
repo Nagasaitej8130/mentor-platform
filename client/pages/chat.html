@@ -1,37 +1,79 @@
 <!DOCTYPE html>
+
 <html>
 <head>
   <title>Chat</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
+
 <body>
 
-<h2>Chat</h2>
+<div class="layout">
 
-<button onclick="logout()">Logout</button>
+  <!-- SIDEBAR -->
 
-<div style="display:flex;">
+  <div id="sidebar"></div>
 
-  <!-- LEFT: connections -->
-  <div style="width:30%;">
-    <h3>Connections</h3>
+  <!-- MAIN -->
+
+  <div class="main">
+
+```
+<!-- NAVBAR -->
+<div id="navbar"></div>
+
+<!-- CONTENT -->
+<section class="content chat-layout">
+
+  <!-- LEFT PANEL -->
+  <div class="chat-users">
+
+    <input 
+      type="text" 
+      id="chatSearch" 
+      placeholder="Search connections..." 
+      oninput="filterChatUsers()"
+    />
+
     <div id="users"></div>
+
   </div>
 
-  <!-- RIGHT: chat -->
-  <div style="width:70%;">
-    <h3 id="chatWith">Select a user</h3>
+  <!-- RIGHT PANEL -->
+  <div class="chat-box">
 
+    <!-- HEADER -->
+    <div class="chat-header">
+      <h3 id="chatUserName">Send message</h3>
+    </div>
+
+    <!-- MESSAGES -->
     <ul id="messages"></ul>
 
-    <input id="message" placeholder="Type message" />
-    <button onclick="sendMessage()">Send</button>
+    <!-- INPUT -->
+    <div class="chat-input">
+      <input id="message" placeholder="Type a message..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+  </div>
+
+</section>
+
+
   </div>
 
 </div>
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
 <script src="../js/main.js"></script>
+
+<!-- LOAD LAYOUT -->
+
+<script>
+  loadLayout("Chat");
+</script>
 
 </body>
 </html>

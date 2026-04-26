@@ -1,4 +1,6 @@
 require("dotenv").config();
+console.log("MONGO_URI:", process.env.MONGO_URI);
+const userRoutes = require("./routes/userRoutes");
 
 const notificationRoutes = require("./routes/notificationRoutes");
 
@@ -45,6 +47,7 @@ app.use("/api/meetings", meetingRoutes);
 
 app.use("/api/notifications", notificationRoutes);
 
+app.use("/api/users", userRoutes);
 // Root route
 app.get("/", (req, res) => {
   res.send("API is running 🚀");

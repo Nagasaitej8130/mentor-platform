@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Profile</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body onload="loadLayout('Profile'); loadProfile();">
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+
+  <div id="sidebar"></div>
+
+  <!-- MAIN -->
+
+  <div class="main">
+
+```
+<!-- NAVBAR -->
+<div id="navbar"></div>
+
+<!-- CONTENT -->
+<section class="content">
+
+  <div class="card">
+    <h3>Your Profile</h3>
+
+    <p><strong>Name:</strong> <span id="p_name"></span></p>
+    <p><strong>Email:</strong> <span id="p_email"></span></p>
+    <p><strong>Role:</strong> <span id="p_role"></span></p>
+
+    <p><strong>Bio:</strong> <span id="p_bio"></span></p>
+    <p><strong>Skills:</strong> <span id="p_skills"></span></p>
+
+    <!-- Mentor Fields -->
+    <div id="mentorFields" style="display:none;">
+      <p><strong>Company:</strong> <span id="p_company"></span></p>
+      <p><strong>Experience:</strong> <span id="p_exp"></span></p>
+      <p><strong>Expertise:</strong> <span id="p_expertise"></span></p>
+    </div>
+
+    <!-- Entrepreneur Fields -->
+    <div id="entrepreneurFields" style="display:none;">
+      <p><strong>Startup:</strong> <span id="p_startup"></span></p>
+      <p><strong>Idea:</strong> <span id="p_idea"></span></p>
+      <p><strong>Industry:</strong> <span id="p_industry"></span></p>
+    </div>
+
+    <br>
+
+    <button onclick="goToUpdate()">Update Profile</button>
+    <button onclick="logout()">Logout</button>
+
+  </div>
+
+</section>
+```
+
+  </div>
+
+</div>
+
+<script src="../js/main.js"></script>
+
+</body>
+</html>

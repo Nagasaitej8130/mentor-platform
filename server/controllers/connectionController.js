@@ -85,13 +85,19 @@ const getConnections = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // incoming requests
+    // ✅ Incoming requests (others → you)
     const requests = await Connection.find({
       receiver: userId,
       status: "pending"
     }).populate("sender", "name email role");
 
-    // accepted connections
+    // ✅ Sent requests (you → others)
+    const sentRequests = await Connection.find({
+      sender: userId,
+      status: "pending"
+    }).populate("receiver", "name email role");
+
+    // ✅ Accepted connections
     const connections = await Connection.find({
       $or: [
         { sender: userId, status: "accepted" },
@@ -101,6 +107,7 @@ const getConnections = async (req, res) => {
 
     res.json({
       requests,
+      sentRequests, // 🔥 NEW
       connections
     });
 
