@@ -458,7 +458,7 @@ async function loadChat() {
     const user = await resUser.json();
     currentUserId = user._id;
 
-    socket = io("http://localhost:5000");
+    socket = io();
 
     socket.on("receiveMessage", (data) => {
       displayMessage(data.senderId, data.message);
