@@ -44,14 +44,51 @@ The project follows a clean Client-Server architecture and uses the Model-View-C
 - **Real-time Engine:** Socket.IO is attached directly to the Express server to handle bidirectional events. When a user sends a chat message, the backend saves it to MongoDB and immediately broadcasts the "receiveMessage" event to the recipient's active socket room.
 
 ### Directory Layout
-- /client: Contains the entire frontend application. It uses pure HTML, CSS, and Vanilla JavaScript. The /pages folder holds individual views (login, dashboard, chat, etc.), and the /js folder holds the main client-side logic that interacts with the backend API.
-- /server: Contains the Node.js application.
-  - /config: Database connection setup.
-  - /controllers: API logic and request handling.
-  - /middleware: Security and authentication checks.
-  - /models: Database schemas.
-  - /routes: API endpoint definitions.
-  - server.js: The main entry point that wires up Express, Socket.IO, and the database.
+
+```text
+mentor-platform/
+├── client/                     
+│   ├── index.html              
+│   ├── css/
+│   │   └── style.css           
+│   ├── js/
+│   │   └── main.js             
+│   ├── components/             
+│   └── pages/
+│       ├── login.html          
+│       ├── register.html       
+│       ├── dashboard.html      
+│       ├── profile.html        
+│       ├── update.html         
+│       ├── connections.html    
+│       ├── chat.html           
+│       └── meetings.html       
+│
+├── server/                     
+│   ├── server.js               
+│   ├── config/
+│   │   └── db.js               
+│   ├── models/
+│   │   ├── User.js             
+│   │   ├── Connection.js       
+│   │   ├── Message.js          
+│   │   ├── Meeting.js          
+│   │   └── Notification.js     
+│   ├── controllers/
+│   │   ├── authController.js   
+│   │   ├── connectionController.js
+│   │   └── ... (other controllers)
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── connectionRoutes.js
+│   │   └── ... (other routes)
+│   └── middleware/
+│       └── authMiddleware.js   
+│
+├── .env                        
+├── package.json
+└── README.md
+```
 ## Deployment
 This project is currently deployed on Render. To deploy your own instance, connect your GitHub repository to a new Render Web Service, set the build command to "npm install", the start command to "npm start", and ensure all environment variables from your local .env file are added to the Render dashboard.
 
