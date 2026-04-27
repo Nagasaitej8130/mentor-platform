@@ -5,23 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Your MentorConnect profile">
   <title>Profile | MentorConnect</title>
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style.css?v=1777295329266">
 </head>
 
 <body onload="loadLayout('Profile'); loadProfile();">
 
 <div class="layout">
-
-  <!-- SIDEBAR -->
   <div id="sidebar"></div>
 
-  <!-- MAIN -->
   <div class="main">
-
-    <!-- NAVBAR -->
     <div id="navbar"></div>
 
-    <!-- CONTENT -->
     <section class="content">
 
       <div class="card profile-card">
@@ -52,7 +46,7 @@
           <span class="profile-value" id="p_skills">-</span>
         </div>
 
-        <!-- Mentor Fields -->
+        <!-- extra fields that only show up if the user is a mentor -->
         <div id="mentorFields" style="display:none;">
           <div class="profile-field">
             <span class="profile-label">Company</span>
@@ -68,7 +62,7 @@
           </div>
         </div>
 
-        <!-- Entrepreneur Fields -->
+        <!-- extra fields that only show up if the user is an entrepreneur -->
         <div id="entrepreneurFields" style="display:none;">
           <div class="profile-field">
             <span class="profile-label">Startup</span>
@@ -84,19 +78,24 @@
           </div>
         </div>
 
+        <!-- member since - shows when the user joined the platform -->
+        <div class="profile-field">
+          <span class="profile-label">Member Since</span>
+          <span class="profile-value" id="p_memberSince">-</span>
+        </div>
+
         <div class="profile-actions">
           <button onclick="goToUpdate()">Edit Profile</button>
-          <button class="btn-danger" onclick="logout()">Logout</button>
+          <button class="btn-danger" onclick="confirmLogout()">Logout</button>
         </div>
       </div>
 
     </section>
-
   </div>
 
 </div>
 
-<script src="../js/main.js"></script>
+<script src="../js/main.js?v=1777295329266"></script>
 
 </body>
 </html>

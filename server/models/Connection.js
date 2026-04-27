@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+// this schema defines how a connection between two users is stored
+// a connection starts as "pending" and becomes "accepted" when the other person approves it
 const connectionSchema = new mongoose.Schema({
   sender: {
     type: mongoose.Schema.Types.ObjectId,

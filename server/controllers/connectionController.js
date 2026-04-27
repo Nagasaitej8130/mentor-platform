@@ -2,18 +2,18 @@ const Connection = require("../models/Connection");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
 
-// Send connection request
+// sends a connection request from one user to another (like a friend request)
 const sendRequest = async (req, res) => {
   try {
     const senderId = req.user.id;
     const { receiverId } = req.body;
 
-    // prevent sending to self
+    // you can't connect with yourself, that doesn't make sense
     if (senderId === receiverId) {
       return res.status(400).json({ message: "Cannot send request to yourself" });
     }
 
-    // check if already exists (either direction)
+    // check both directions - maybe they already sent you a request, or you already sent one
     const existing = await Connection.findOne({
       $or: [
         { sender: senderId, receiver: receiverId },
@@ -32,16 +32,22 @@ const sendRequest = async (req, res) => {
 
     await connection.save();
 
-    // Look up sender name for the notification
+    // get the sender's name so the notification message looks nice
     const senderUser = await User.findById(senderId).select("name");
 
-    // CREATE NOTIFICATION
-    await Notification.create({
+    // let the other person know they got a connection request
+    const notification = await Notification.create({
       userId: receiverId,
       senderName: senderUser ? senderUser.name : "Someone",
       message: `${senderUser ? senderUser.name : "Someone"} sent you a connection request`,
       type: "request"
     });
+
+    // if the socket io instance is available, send real-time notification
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`user_${receiverId}`).emit("newNotification", notification);
+    }
 
     res.json({ message: "Connection request sent" });
 
@@ -50,7 +56,7 @@ const sendRequest = async (req, res) => {
   }
 };
 
-// Accept or reject request
+// handles accepting or rejecting a connection request
 const respondRequest = async (req, res) => {
   try {
     const { requestId, action } = req.body;
@@ -66,16 +72,21 @@ const respondRequest = async (req, res) => {
       connection.status = "accepted";
       await connection.save();
 
-      // Look up acceptor name
+      // find who accepted so we can include their name in the notification
       const acceptorUser = await User.findById(userId).select("name");
 
-      // NOTIFY SENDER
-      await Notification.create({
+      // notify the person who originally sent the request that it was accepted
+      const notification = await Notification.create({
         userId: connection.sender,
         senderName: acceptorUser ? acceptorUser.name : "Someone",
         message: `${acceptorUser ? acceptorUser.name : "Someone"} accepted your connection request`,
         type: "accepted"
       });
+
+      const io = req.app.get("io");
+      if (io) {
+        io.to(`user_${connection.sender}`).emit("newNotification", notification);
+      }
 
       return res.json({ message: "Request accepted" });
     }
@@ -92,24 +103,24 @@ const respondRequest = async (req, res) => {
   }
 };
 
-// Get all connections and requests
+// returns all connection data for a user - pending requests, sent requests, and accepted connections
 const getConnections = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Incoming requests (others -> you)
+    // requests from other people waiting for you to accept or reject
     const requests = await Connection.find({
       receiver: userId,
       status: "pending"
     }).populate("sender", "name email role");
 
-    // Sent requests (you -> others)
+    // requests you sent that are still waiting for a response
     const sentRequests = await Connection.find({
       sender: userId,
       status: "pending"
     }).populate("receiver", "name email role");
 
-    // Accepted connections
+    // people you're already connected with
     const connections = await Connection.find({
       $or: [
         { sender: userId, status: "accepted" },
@@ -128,4 +139,58 @@ const getConnections = async (req, res) => {
   }
 };
 
-module.exports = { sendRequest, respondRequest, getConnections };
+// removes an accepted connection between two users
+const removeConnection = async (req, res) => {
+  try {
+    const connectionId = req.params.id;
+    const userId = req.user.id;
+
+    const connection = await Connection.findById(connectionId);
+
+    if (!connection) {
+      return res.status(404).json({ message: "Connection not found" });
+    }
+
+    // make sure the person requesting the removal is actually part of this connection
+    if (connection.sender.toString() !== userId && connection.receiver.toString() !== userId) {
+      return res.status(403).json({ message: "Not authorized to remove this connection" });
+    }
+
+    await connection.deleteOne();
+    res.json({ message: "Connection removed" });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// cancels a pending connection request that you sent
+const cancelRequest = async (req, res) => {
+  try {
+    const connectionId = req.params.id;
+    const userId = req.user.id;
+
+    const connection = await Connection.findById(connectionId);
+
+    if (!connection) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    // only the person who sent the request can cancel it
+    if (connection.sender.toString() !== userId) {
+      return res.status(403).json({ message: "Not authorized to cancel this request" });
+    }
+
+    if (connection.status !== "pending") {
+      return res.status(400).json({ message: "Can only cancel pending requests" });
+    }
+
+    await connection.deleteOne();
+    res.json({ message: "Request cancelled" });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { sendRequest, respondRequest, getConnections, removeConnection, cancelRequest };

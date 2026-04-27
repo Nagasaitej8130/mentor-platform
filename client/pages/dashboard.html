@@ -5,58 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="MentorConnect Dashboard - Find mentors, view meetings and suggestions">
   <title>Dashboard | MentorConnect</title>
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style.css?v=1777295329266">
 </head>
 
 <body onload="loadLayout('Dashboard'); loadDashboard();">
 
 <div class="layout">
-
-  <!-- SIDEBAR -->
   <div id="sidebar"></div>
 
-  <!-- MAIN -->
   <div class="main">
-
-    <!-- NAVBAR -->
     <div id="navbar"></div>
 
-    <!-- CONTENT -->
     <section class="content">
 
-      <!-- SEARCH -->
+      <!-- dashboard stats: welcome message + quick numbers -->
+      <div class="card" id="dashboardStats">
+        <div id="statsContent"><p style="color:var(--text-muted);font-size:14px;">Loading...</p></div>
+      </div>
+
+      <!-- search bar to find mentors or entrepreneurs -->
       <div class="card">
         <h3>Find Mentors / Entrepreneurs</h3>
         <div class="search-box">
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Search by name, email or skill..."
-          />
+          <input type="text" id="searchInput" placeholder="Search by name, email or skill..." />
           <button onclick="handleSearch()">Search</button>
         </div>
         <div id="searchResults"></div>
       </div>
 
-      <!-- SUGGESTIONS -->
+      <!-- people the algorithm suggests based on matching skills -->
       <div class="card">
         <h3>Suggested Connections</h3>
         <div id="suggestions"></div>
       </div>
 
-      <!-- MEETINGS -->
+      <!-- upcoming scheduled meetings -->
       <div class="card">
         <h3>Upcoming Meetings</h3>
         <div id="meetings"></div>
       </div>
 
     </section>
-
   </div>
 
 </div>
 
-<script src="../js/main.js"></script>
+<script src="../js/main.js?v=1777295329266"></script>
 
 </body>
 </html>

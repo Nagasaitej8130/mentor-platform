@@ -5,29 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Update your MentorConnect profile">
   <title>Update Profile | MentorConnect</title>
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style.css?v=1777295329266">
 </head>
 
 <body onload="loadLayout('Update Profile'); loadUpdateForm();">
 
 <div class="layout">
-
-  <!-- SIDEBAR -->
   <div id="sidebar"></div>
 
-  <!-- MAIN -->
   <div class="main">
-
-    <!-- NAVBAR -->
     <div id="navbar"></div>
 
-    <!-- CONTENT -->
     <section class="content">
 
       <div class="card profile-card">
         <h3>Edit Profile</h3>
 
-        <!-- COMMON -->
         <label style="font-size:13px;color:#64748b;font-weight:600;margin-bottom:4px;display:block;">Name</label>
         <input id="u_name" placeholder="Your full name" />
 
@@ -37,28 +30,26 @@
         <label style="font-size:13px;color:#64748b;font-weight:600;margin-bottom:4px;display:block;">Skills</label>
         <input id="u_skills" placeholder="e.g. JavaScript, Python, Marketing" />
 
-        <!-- MENTOR -->
+        <!-- mentor-only fields -->
         <div id="u_mentorFields" style="display:none;">
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:16px 0;">
           <label style="font-size:13px;color:#64748b;font-weight:600;margin-bottom:4px;display:block;">Company</label>
           <input id="u_company" placeholder="Company name" />
-
+          <label style="font-size:13px;color:#64748b;font-weight:600;margin-bottom:4px;display:block;">Current Role</label>
+          <input id="u_currentRole" placeholder="e.g. Senior Engineer" />
           <label style="font-size:13px;color:#64748b;font-weight:600;margin-bottom:4px;display:block;">Experience (years)</label>
           <input id="u_exp" type="number" placeholder="e.g. 5" />
-
           <label style="font-size:13px;color:#64748b;font-weight:600;margin-bottom:4px;display:block;">Expertise</label>
           <input id="u_expertise" placeholder="e.g. AI, Cloud, Leadership" />
         </div>
 
-        <!-- ENTREPRENEUR -->
+        <!-- entrepreneur-only fields -->
         <div id="u_entrepreneurFields" style="display:none;">
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:16px 0;">
           <label style="font-size:13px;color:#64748b;font-weight:600;margin-bottom:4px;display:block;">Startup Name</label>
           <input id="u_startup" placeholder="Your startup name" />
-
           <label style="font-size:13px;color:#64748b;font-weight:600;margin-bottom:4px;display:block;">Idea</label>
           <input id="u_idea" placeholder="Describe your idea" />
-
           <label style="font-size:13px;color:#64748b;font-weight:600;margin-bottom:4px;display:block;">Industry</label>
           <input id="u_industry" placeholder="e.g. FinTech, HealthTech" />
         </div>
@@ -67,17 +58,39 @@
           <button onclick="updateProfile()">Save Changes</button>
           <button class="btn-outline" onclick="window.location.href='profile.html'">Cancel</button>
         </div>
-
       </div>
 
-      <div class="card profile-card" style="margin-top: 24px;">
+      <!-- change password section -->
+      <div class="card profile-card" style="margin-top:24px;">
         <h3>Change Password</h3>
-        
+
         <label style="font-size:13px;color:#64748b;font-weight:600;margin-bottom:4px;display:block;">Current Password</label>
-        <input type="password" id="u_current_password" placeholder="Enter current password" />
+        <div style="position:relative; margin-bottom:16px;">
+          <input type="password" id="u_current_password" placeholder="Enter current password" style="margin-bottom:0; padding-right:44px;" />
+          <button type="button"
+            onclick="togglePasswordVisibility('u_current_password','pwEye1')"
+            tabindex="-1"
+            style="position:absolute; right:10px; top:50%; transform:translateY(-50%);
+                   background:transparent; border:none; padding:4px; cursor:pointer;
+                   font-size:17px; line-height:1; color:#a8a29e; width:auto;
+                   box-shadow:none; display:flex; align-items:center;">
+            <span id="pwEye1">👁</span>
+          </button>
+        </div>
 
         <label style="font-size:13px;color:#64748b;font-weight:600;margin-bottom:4px;display:block;">New Password</label>
-        <input type="password" id="u_new_password" placeholder="Enter new password (min 6 chars)" />
+        <div style="position:relative; margin-bottom:16px;">
+          <input type="password" id="u_new_password" placeholder="Enter new password (min 6 chars)" style="margin-bottom:0; padding-right:44px;" />
+          <button type="button"
+            onclick="togglePasswordVisibility('u_new_password','pwEye2')"
+            tabindex="-1"
+            style="position:absolute; right:10px; top:50%; transform:translateY(-50%);
+                   background:transparent; border:none; padding:4px; cursor:pointer;
+                   font-size:17px; line-height:1; color:#a8a29e; width:auto;
+                   box-shadow:none; display:flex; align-items:center;">
+            <span id="pwEye2">👁</span>
+          </button>
+        </div>
 
         <div class="profile-actions" style="margin-top:20px;">
           <button onclick="changePassword(event)">Update Password</button>
@@ -85,12 +98,11 @@
       </div>
 
     </section>
-
   </div>
 
 </div>
 
-<script src="../js/main.js"></script>
+<script src="../js/main.js?v=1777295329266"></script>
 
 </body>
 </html>

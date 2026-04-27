@@ -1,6 +1,6 @@
 const Notification = require("../models/Notification");
 
-// get notifications
+// gets all notifications for the logged-in user, newest ones first
 const getNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -15,7 +15,7 @@ const getNotifications = async (req, res) => {
   }
 };
 
-// mark all as read
+// marks all unread notifications as read for the current user
 const markAsRead = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -32,4 +32,18 @@ const markAsRead = async (req, res) => {
   }
 };
 
-module.exports = { getNotifications, markAsRead };
+// deletes all notifications for the current user - a fresh start
+const clearAll = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    await Notification.deleteMany({ userId });
+
+    res.json({ message: "All notifications cleared" });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { getNotifications, markAsRead, clearAll };

@@ -5,6 +5,7 @@
 > MentorConnect helps aspiring entrepreneurs find the right mentors, build meaningful professional relationships, and manage their learning journey — all in one place.
 
 🔗 **Live URL:** [mentor-connect-hs6e.onrender.com](https://mentor-connect-hs6e.onrender.com)
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Click_Here-blue?style=for-the-badge)](https://mentor-connect-hs6e.onrender.com)
 
 ---
 
@@ -219,7 +220,7 @@ mentor-platform/
 
 This project is deployed on **Render**.
 
-🔗 **Live URL:** [YOUR_DEPLOYED_LINK_HERE](YOUR_DEPLOYED_LINK_HERE)
+🔗 **Live URL:** [mentor-connect-hs6e.onrender.com](https://mentor-connect-hs6e.onrender.com)
 
 ### Deploy Your Own
 

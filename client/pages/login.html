@@ -5,29 +5,112 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Login to MentorConnect - Your mentoring platform">
   <title>Login | MentorConnect</title>
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style.css?v=1777295329266">
 </head>
 
 <body class="auth-body">
 
   <div class="auth-container">
     <div class="auth-card">
-      <h2 class="auth-title">Welcome Back</h2>
-      <p class="auth-subtitle">Login to MentorConnect</p>
 
-      <input id="email" type="email" placeholder="Email address" />
-      <input id="password" type="password" placeholder="Password" />
+      <!-- ── STEP 1: Normal login ── -->
+      <div id="loginSection">
+        <h2 class="auth-title">Welcome Back</h2>
+        <p class="auth-subtitle">Login to MentorConnect</p>
 
-      <button onclick="login()" class="auth-btn">Login</button>
+        <input id="email" type="email" placeholder="Email address" />
 
-      <p class="auth-footer">
-        Don't have an account?
-        <a href="register.html">Register</a>
-      </p>
+        <!-- password field with eye toggle using inline styles so nothing overrides them -->
+        <div style="position:relative; margin-bottom:16px;">
+          <input id="password" type="password" placeholder="Password" style="margin-bottom:0; padding-right:44px;" />
+          <button type="button"
+            onclick="togglePasswordVisibility('password','pwEye1')"
+            tabindex="-1"
+            style="position:absolute; right:10px; top:50%; transform:translateY(-50%);
+                   background:transparent; border:none; padding:4px; cursor:pointer;
+                   font-size:17px; line-height:1; color:#a8a29e; width:auto;
+                   box-shadow:none; display:flex; align-items:center;">
+            <span id="pwEye1">👁</span>
+          </button>
+        </div>
+
+        <button onclick="login()" class="auth-btn">Login</button>
+
+        <p class="auth-footer" style="margin-top:12px;">
+          <a href="#" onclick="showForgotStep1(); return false;" style="font-size:13px;">Forgot Password?</a>
+        </p>
+        <p class="auth-footer" style="margin-top:8px;">
+          Don't have an account? <a href="register.html">Register</a>
+        </p>
+      </div>
+
+      <!-- ── STEP 2: Enter email to get OTP ── -->
+      <div id="forgotStep1" style="display:none;">
+        <h2 class="auth-title">Forgot Password</h2>
+        <p class="auth-subtitle">Enter your registered email and we'll send you a 6-digit OTP.</p>
+
+        <input id="forgotEmail" type="email" placeholder="Your registered email address" />
+
+        <button onclick="sendOtp()" class="auth-btn">Send OTP</button>
+
+        <p class="auth-footer" style="margin-top:12px;">
+          <a href="#" onclick="showLoginSection(); return false;" style="font-size:13px;">← Back to Login</a>
+        </p>
+      </div>
+
+      <!-- ── STEP 3: Enter OTP + new password ── -->
+      <div id="forgotStep2" style="display:none;">
+        <h2 class="auth-title">Reset Password</h2>
+        <p class="auth-subtitle" id="otpSubtitle">OTP sent to your email. Enter it below.</p>
+
+        <input
+          id="otpInput"
+          type="text"
+          placeholder="6-digit OTP"
+          maxlength="6"
+          style="letter-spacing:8px; font-size:22px; font-weight:700; text-align:center;"
+        />
+
+        <div style="position:relative; margin-bottom:16px;">
+          <input id="newPassword" type="password" placeholder="New password (min 6 chars)" style="margin-bottom:0; padding-right:44px;" />
+          <button type="button"
+            onclick="togglePasswordVisibility('newPassword','pwEye2')"
+            tabindex="-1"
+            style="position:absolute; right:10px; top:50%; transform:translateY(-50%);
+                   background:transparent; border:none; padding:4px; cursor:pointer;
+                   font-size:17px; line-height:1; color:#a8a29e; width:auto;
+                   box-shadow:none; display:flex; align-items:center;">
+            <span id="pwEye2">👁</span>
+          </button>
+        </div>
+
+        <div style="position:relative; margin-bottom:16px;">
+          <input id="confirmNewPassword" type="password" placeholder="Confirm new password" style="margin-bottom:0; padding-right:44px;" />
+          <button type="button"
+            onclick="togglePasswordVisibility('confirmNewPassword','pwEye3')"
+            tabindex="-1"
+            style="position:absolute; right:10px; top:50%; transform:translateY(-50%);
+                   background:transparent; border:none; padding:4px; cursor:pointer;
+                   font-size:17px; line-height:1; color:#a8a29e; width:auto;
+                   box-shadow:none; display:flex; align-items:center;">
+            <span id="pwEye3">👁</span>
+          </button>
+        </div>
+
+        <button onclick="resetPasswordWithOtp()" class="auth-btn">Reset Password</button>
+
+        <p class="auth-footer" style="margin-top:12px;">
+          Didn't receive it? <a href="#" onclick="showForgotStep1(); return false;">Resend OTP</a>
+        </p>
+        <p class="auth-footer">
+          <a href="#" onclick="showLoginSection(); return false;" style="font-size:13px;">← Back to Login</a>
+        </p>
+      </div>
+
     </div>
   </div>
 
-  <script src="../js/main.js"></script>
+  <script src="../js/main.js?v=1777295329266"></script>
 
 </body>
 </html>

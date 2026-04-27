@@ -1,7 +1,8 @@
-/* ================= IMPORTS ================= */
+/* bringing in the Inter font from Google Fonts for a clean look */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* ================= CSS VARIABLES ================= */
+/* these are the main color and spacing variables used across the whole app.
+   changing a value here will update it everywhere automatically */
 :root {
   --bg-page: #f5f5f4;
   --bg-surface: #ffffff;
@@ -13,7 +14,7 @@
   --text-muted: #a8a29e;
   --text-white: #ffffff;
   
-  --accent: #0f766e; /* Teal / Emerald mix */
+  --accent: #0f766e; /* this is our main brand color, a teal-emerald mix */
   --accent-hover: #0d9488;
   --accent-light: #ccfbf1;
   --accent-text: #0f766e;
@@ -32,7 +33,7 @@
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
-/* ================= RESET ================= */
+/* basic reset so every browser starts from the same place */
 * {
   margin: 0;
   padding: 0;
@@ -64,7 +65,7 @@ a:hover {
   color: var(--accent-hover);
 }
 
-/* ================= LAYOUT ================= */
+/* main layout - sidebar on the left, content on the right */
 .layout {
   display: flex;
   min-height: 100vh;
@@ -77,7 +78,7 @@ a:hover {
   flex-direction: column;
 }
 
-/* ================= SIDEBAR ================= */
+/* sidebar stays fixed on the left side while you scroll */
 .sidebar {
   width: 250px;
   min-height: 100vh;
@@ -125,6 +126,7 @@ a:hover {
   color: var(--text-white);
 }
 
+/* highlights the currently active page in the sidebar */
 .sidebar nav a.active {
   background: var(--accent);
   color: var(--text-white);
@@ -145,7 +147,7 @@ a:hover {
   color: #fca5a5;
 }
 
-/* ================= NAVBAR ================= */
+/* top navigation bar - sticks to the top when scrolling */
 .navbar {
   height: 64px;
   display: flex;
@@ -181,7 +183,7 @@ a:hover {
   border-radius: var(--radius-full);
 }
 
-/* Notification bell */
+/* notification bell icon and its dropdown menu */
 .notif-wrapper {
   position: relative;
 }
@@ -204,6 +206,7 @@ a:hover {
   color: var(--accent);
 }
 
+/* small red badge that shows unread notification count */
 #notifCount {
   background: var(--danger);
   color: white;
@@ -214,6 +217,7 @@ a:hover {
   display: none;
 }
 
+/* dropdown that appears when you click the bell icon */
 #notifDropdown {
   position: absolute;
   right: 0;
@@ -250,6 +254,7 @@ a:hover {
   font-size: 11px;
   color: var(--text-muted);
 }
+/* unread notifications get a light teal background so they stand out */
 .notif-unread {
   background: var(--accent-light);
 }
@@ -260,14 +265,14 @@ a:hover {
   font-size: 13px;
 }
 
-/* ================= CONTENT ================= */
+/* the main scrollable content area where each page loads */
 .content {
   padding: 32px;
   overflow-y: auto;
   flex: 1;
 }
 
-/* ================= BUTTONS ================= */
+/* shared button styles used across the whole app */
 button, .btn-primary {
   border: none;
   border-radius: var(--radius-sm);
@@ -317,7 +322,7 @@ button:disabled {
   background: var(--bg-page);
 }
 
-/* ================= INPUTS ================= */
+/* form input styling - inputs, selects, and textareas all share the same base look */
 input, select, textarea {
   padding: 10px 14px;
   width: 100%;
@@ -330,6 +335,7 @@ input, select, textarea {
   background: var(--bg-surface);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+/* when focused, inputs get a teal border with a subtle glow ring */
 input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--accent);
@@ -340,7 +346,7 @@ textarea {
   min-height: 100px;
 }
 
-/* ================= CARDS ================= */
+/* generic card component - used for dashboard sections, profile, etc. */
 .card {
   background: var(--bg-surface);
   padding: 24px;
@@ -356,7 +362,7 @@ textarea {
   color: var(--text-primary);
 }
 
-/* ================= USER CARD ================= */
+/* user card - shows a person's name, role, and action buttons in a row */
 .user-card {
   display: flex;
   justify-content: space-between;
@@ -377,6 +383,7 @@ textarea {
   align-items: center;
   gap: 14px;
 }
+/* circular avatar with the user's initials inside */
 .avatar {
   width: 40px;
   height: 40px;
@@ -411,6 +418,7 @@ textarea {
   display: flex;
   gap: 8px;
 }
+/* small badge that shows how many skills matched between two users */
 .match-badge {
   display: inline-block;
   font-size: 11px;
@@ -422,7 +430,7 @@ textarea {
   font-weight: 500;
 }
 
-/* ================= EMPTY STATE ================= */
+/* placeholder shown when there's no data to display yet */
 .empty-state {
   text-align: center;
   padding: 32px 16px;
@@ -431,7 +439,7 @@ textarea {
   background: transparent;
 }
 
-/* ================= SEARCH ================= */
+/* search bar with input and button side by side */
 .search-box {
   display: flex;
   gap: 12px;
@@ -441,7 +449,7 @@ textarea {
   margin-bottom: 0;
 }
 
-/* ================= MEETINGS ================= */
+/* meeting list items and the form to schedule new meetings */
 .meeting-item {
   display: flex;
   justify-content: space-between;
@@ -469,6 +477,7 @@ textarea {
   font-size: 13px;
   color: var(--text-secondary);
 }
+/* meeting form uses a 2-column grid layout */
 .meeting-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -482,7 +491,7 @@ textarea {
   grid-column: 1 / -1;
 }
 
-/* ================= CHAT ================= */
+/* chat page layout - users list on the left, messages on the right */
 .chat-layout {
   display: flex;
   height: calc(100vh - 128px);
@@ -531,6 +540,7 @@ textarea {
 .chat-user-item:hover {
   background: var(--bg-page);
 }
+/* the currently selected chat user gets highlighted */
 .active-chat-user {
   background: var(--accent-light) !important;
   color: var(--accent) !important;
@@ -561,6 +571,7 @@ textarea {
   font-size: 14px;
   background: var(--bg-surface);
 }
+/* little green dot showing the user is online */
 .chat-header-dot {
   width: 8px;
   height: 8px;
@@ -585,12 +596,14 @@ textarea {
   font-size: 14px;
   line-height: 1.5;
 }
+/* messages you sent appear on the right side in teal */
 .sent {
   align-self: flex-end;
   background: var(--accent);
   color: var(--text-white);
   border-bottom-right-radius: 2px;
 }
+/* messages you received appear on the left side with a border */
 .received {
   align-self: flex-start;
   background: var(--bg-surface);
@@ -614,7 +627,7 @@ textarea {
   border-radius: var(--radius-full);
 }
 
-/* ================= AUTH PAGES ================= */
+/* login and register page styles - centered card layout */
 .auth-body {
   height: 100vh;
   display: flex;
@@ -661,7 +674,7 @@ textarea {
   font-weight: 600;
 }
 
-/* ================= PROFILE ================= */
+/* profile page - shows user info in a label-value layout */
 .profile-card {
   max-width: 600px;
 }
@@ -690,7 +703,7 @@ textarea {
   margin-top: 24px;
 }
 
-/* ================= TOAST ================= */
+/* toast notifications that pop up at the bottom-right corner */
 .toast {
   position: fixed;
   bottom: 24px;
@@ -730,7 +743,7 @@ textarea {
 .toast-warning .toast-icon { background: #fef9c3; color: var(--warning); }
 .toast-info .toast-icon { background: var(--accent-light); color: var(--accent); }
 
-/* ================= SCROLLBAR ================= */
+/* custom scrollbar to keep things looking clean */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -745,7 +758,7 @@ textarea {
   background: #a8a29e;
 }
 
-/* ================= SECTION HEADERS ================= */
+/* header row used for sections that have a title and a button side by side */
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -756,12 +769,14 @@ textarea {
   margin-bottom: 0;
 }
 
-/* ================= MOBILE RESPONSIVENESS ================= */
+/* mobile responsive styles - kicks in on screens smaller than 768px */
 @media (max-width: 768px) {
+  /* show the hamburger menu button on mobile */
   .mobile-toggle {
     display: block !important;
   }
   
+  /* sidebar slides in from the left on mobile instead of being always visible */
   .sidebar {
     position: fixed;
     top: 0;
@@ -777,7 +792,7 @@ textarea {
     box-shadow: 4px 0 16px rgba(0,0,0,0.2);
   }
   
-  /* Overlay */
+  /* dark overlay behind the sidebar when it's open on mobile */
   .sidebar-overlay {
     display: none;
     position: fixed;
@@ -801,7 +816,7 @@ textarea {
     padding: 0 16px;
   }
 
-  /* Chat Mobile Layout */
+  /* on mobile, chat switches to a stacked layout instead of side by side */
   .chat-layout {
     flex-direction: column;
     height: calc(100vh - 100px);
@@ -813,15 +828,372 @@ textarea {
     border-bottom: 1px solid var(--border);
   }
   
-  /* Meeting Form Grid */
+  /* meeting form goes to single column on small screens */
   .meeting-form {
     grid-template-columns: 1fr;
   }
   
-  /* Auth Pages */
+  /* tighten up padding on auth cards for mobile */
   .auth-card {
     padding: 24px 20px;
   }
   
-  /* Landing page handled in index.html already */
+
+/* ─── PASSWORD TOGGLE ─────────────────────────────────────────────────────── */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
 }
+.password-wrapper input {
+  margin-bottom: 0;
+  padding-right: 44px;
+}
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  background: none !important;
+  border: none !important;
+  padding: 4px !important;
+  color: var(--text-muted) !important;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
+  min-width: unset;
+  box-shadow: none !important;
+}
+.password-toggle:hover { color: var(--text-secondary) !important; }
+
+/* ─── CONFIRM DIALOG ─────────────────────────────────────────────────────── */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.confirm-overlay.show { opacity: 1; }
+.confirm-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  max-width: 360px;
+  width: 90%;
+  box-shadow: var(--shadow-md);
+}
+.confirm-msg {
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* ─── DASHBOARD STATS ────────────────────────────────────────────────────── */
+.dashboard-stats {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 100px;
+}
+.stat-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ─── EXPANDED SUGGESTION CARDS ─────────────────────────────────────────── */
+.user-card-expanded {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.user-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.user-card-detail {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding-left: 54px;
+}
+.user-detail { font-size: 12px; }
+.user-bio-preview {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  padding-left: 54px;
+  margin: 0;
+}
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-left: 54px;
+}
+.skill-tag {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-light);
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-weight: 500;
+}
+
+/* ─── PROFILE LINK (clickable names) ────────────────────────────────────── */
+.profile-link {
+  color: var(--text-primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.profile-link:hover { color: var(--accent); }
+
+/* ─── USER-BADGE AS LINK ─────────────────────────────────────────────────── */
+a.user-badge {
+  color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+a.user-badge:hover { color: var(--accent); }
+
+/* ─── SIDEBAR UNREAD BADGE ───────────────────────────────────────────────── */
+.sidebar-badge {
+  background: var(--danger);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: 6px;
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── CHAT ENHANCEMENTS ──────────────────────────────────────────────────── */
+.chat-user-item {
+  align-items: flex-start !important;
+}
+.chat-user-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.chat-user-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+}
+.chat-user-name {
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chat-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.chat-preview {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+.chat-unread-badge {
+  background: var(--accent);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  align-self: center;
+}
+/* message layout: text + timestamp together */
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.msg-text { display: block; }
+.message-time {
+  font-size: 10px;
+  opacity: 0.65;
+  align-self: flex-end;
+}
+.sent .message-time { align-self: flex-end; }
+.received .message-time { align-self: flex-start; }
+
+/* typing indicator */
+.typing-indicator {
+  padding: 6px 20px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ─── OTP INPUT ──────────────────────────────────────────────────────────── */
+input#otpInput {
+  letter-spacing: 8px;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+}
+input#otpInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+/* ─── SUGGESTION CARDS ───────────────────────────────────────────────────── */
+.suggestion-card {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+}
+.suggestion-left {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+.suggestion-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+}
+.suggestion-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.suggestion-detail {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+.suggestion-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+.suggestion-skills .skill-tag {
+  font-size: 10px;
+  padding: 1px 8px;
+}
+.suggestion-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.match-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-light);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+/* ─── STAT LINKS ─────────────────────────────────────────────────────────── */
+a.stat-link {
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+a.stat-link:hover {
+  background: var(--bg-hover, rgba(0,0,0,0.04));
+}
+a.stat-link:hover .stat-number { color: var(--accent); }
+a.stat-link:hover .stat-label { color: var(--text-primary); }
+
+/* ─── PROFILE COMPLETION SLIDE-IN ANIMATION ──────────────────────────────── */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(60px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ─── CHAT: TIMESTAMP AS OWN LINE ────────────────────────────────────────── */
+/* override the original .message block so it stacks text and time vertically */
+.message {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px;
+  max-width: 65%;
+}
+.msg-text {
+  display: block;
+  line-height: 1.5;
+  font-size: 14px;
+}
+.message-time {
+  display: block !important;
+  font-size: 10px;
+  opacity: 0.55;
+  line-height: 1;
+  margin-top: 2px;
+}
+.sent .message-time  { text-align: right; }
+.received .message-time { text-align: left; }
+
+.chat-time {
+  font-size: 10px !important;
+  opacity: 0.6;
+  font-weight: 400;
+  margin-left: auto;
+}
+

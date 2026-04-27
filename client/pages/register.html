@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Create your MentorConnect account">
   <title>Register | MentorConnect</title>
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style.css?v=1777295329266">
 </head>
 
 <body class="auth-body">
@@ -17,7 +17,32 @@
 
       <input id="name" type="text" placeholder="Full Name" />
       <input id="email" type="email" placeholder="Email address" />
-      <input id="password" type="password" placeholder="Password (min 6 characters)" />
+
+      <div style="position:relative; margin-bottom:16px;">
+        <input id="password" type="password" placeholder="Password (min 6 characters)" style="margin-bottom:0; padding-right:44px;" />
+        <button type="button"
+          onclick="togglePasswordVisibility('password','pwEye1')"
+          tabindex="-1"
+          style="position:absolute; right:10px; top:50%; transform:translateY(-50%);
+                 background:transparent; border:none; padding:4px; cursor:pointer;
+                 font-size:17px; line-height:1; color:#a8a29e; width:auto;
+                 box-shadow:none; display:flex; align-items:center;">
+          <span id="pwEye1">👁</span>
+        </button>
+      </div>
+
+      <div style="position:relative; margin-bottom:16px;">
+        <input id="confirmPassword" type="password" placeholder="Confirm Password" style="margin-bottom:0; padding-right:44px;" />
+        <button type="button"
+          onclick="togglePasswordVisibility('confirmPassword','pwEye2')"
+          tabindex="-1"
+          style="position:absolute; right:10px; top:50%; transform:translateY(-50%);
+                 background:transparent; border:none; padding:4px; cursor:pointer;
+                 font-size:17px; line-height:1; color:#a8a29e; width:auto;
+                 box-shadow:none; display:flex; align-items:center;">
+          <span id="pwEye2">👁</span>
+        </button>
+      </div>
 
       <select id="role">
         <option value="">Select your role</option>
@@ -28,13 +53,12 @@
       <button onclick="register()" class="auth-btn">Register</button>
 
       <p class="auth-footer">
-        Already have an account?
-        <a href="login.html">Login</a>
+        Already have an account? <a href="login.html">Login</a>
       </p>
     </div>
   </div>
 
-  <script src="../js/main.js"></script>
+  <script src="../js/main.js?v=1777295329266"></script>
 
 </body>
 </html>

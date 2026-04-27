@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+// stores meeting details - who's meeting, when, and the video call link
 const meetingSchema = new mongoose.Schema({
   participants: [
     {

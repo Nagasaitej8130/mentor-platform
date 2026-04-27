@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+// stores notifications like connection requests, meeting invites, etc.
+// isRead tracks whether the user has seen it yet
 const notificationSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
