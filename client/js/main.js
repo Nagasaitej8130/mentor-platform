@@ -563,11 +563,15 @@ async function loadDashboard() {
               <div class="suggestion-info">
                 <a href="view-profile.html?id=${user._id}" class="suggestion-name profile-link">${escapeHtml(user.name)}</a>
                 ${detail ? `<span class="suggestion-detail">${escapeHtml(detail)}</span>` : ""}
-                ${skillTags ? `<div class="suggestion-skills">${skillTags}</div>` : ""}
+                <div class="suggestion-skills">
+                  ${skillTags ? skillTags : ""}
+                  <span class="match-badge" style="margin-left: ${skillTags ? '8px' : '0'};">
+                    Match Score: ${item.score}
+                  </span>
+                </div>
               </div>
             </div>
             <div class="suggestion-right">
-              ${item.score > 0 ? `<span class="match-badge">${item.score} match${item.score > 1 ? "es" : ""}</span>` : ""}
               ${btn}
             </div>
           `;
