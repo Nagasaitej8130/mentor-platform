@@ -549,20 +549,34 @@ async function loadDashboard() {
 
           // extra detail line (company/startup · industry)
           let detail = "";
+          let extraDetail = "";
           if (user.role === "mentor") {
             const parts = [user.company, user.currentRole].filter(Boolean);
             if (parts.length) detail = parts.join(" · ");
+            if (user.experienceYears) {
+              extraDetail = `<div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px; margin-bottom: 6px;">🎓 ${escapeHtml(user.experienceYears.toString())} Years Experience</div>`;
+            }
           } else if (user.role === "entrepreneur") {
             const parts = [user.startupName, user.industry].filter(Boolean);
             if (parts.length) detail = parts.join(" · ");
+            if (user.idea) {
+              let ideaPreview = user.idea.split('\n')[0];
+              const isLong = ideaPreview.length > 75 || user.idea.split('\n').length > 1;
+              if (ideaPreview.length > 75) ideaPreview = ideaPreview.substring(0, 75) + "...";
+              extraDetail = `<div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px; margin-bottom: 6px;">💡 <strong>Idea:</strong> ${escapeHtml(ideaPreview)} ${isLong ? `<a href="view-profile.html?id=${user._id}" style="font-size: 12px; margin-left: 4px; text-decoration: underline;">read more</a>` : `<a href="view-profile.html?id=${user._id}" style="font-size: 12px; margin-left: 4px; text-decoration: underline;">view</a>`}</div>`;
+            }
           }
 
           div.innerHTML = `
             <div class="suggestion-left">
               <div class="avatar">${initials}</div>
               <div class="suggestion-info">
-                <a href="view-profile.html?id=${user._id}" class="suggestion-name profile-link">${escapeHtml(user.name)}</a>
-                ${detail ? `<span class="suggestion-detail">${escapeHtml(detail)}</span>` : ""}
+                <div style="display: flex; align-items: baseline; gap: 6px;">
+                  <a href="view-profile.html?id=${user._id}" class="suggestion-name profile-link">${escapeHtml(user.name)}</a>
+                  <span style="font-size: 12px; color: var(--text-muted); text-transform: capitalize;">${escapeHtml(user.role)}</span>
+                </div>
+                ${detail ? `<span class="suggestion-detail" style="display:block; margin-bottom: 4px;">${escapeHtml(detail)}</span>` : ""}
+                ${extraDetail}
                 <div class="suggestion-skills">
                   ${skillTags ? skillTags : ""}
                   <span class="match-badge" style="margin-left: ${skillTags ? '8px' : '0'};">
