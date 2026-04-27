@@ -33,11 +33,25 @@ Live URL: https://mentor-connect-hs6e.onrender.com
 4. Start the server by running "npm run dev".
 5. Open your browser and navigate to http://localhost:5000.
 
-## Project Structure
-The project is split into a client and server architecture. 
-The client folder contains all the frontend pages, CSS styles, and client-side scripts. 
-The server folder handles the backend logic, containing the Express API routes, MongoDB models, controllers, and socket configuration for the real-time chat.
+## Architecture and File Structure
 
+The project follows a clean Client-Server architecture and uses the Model-View-Controller (MVC) pattern on the backend to keep the code organized and scalable.
+
+### Backend Architecture
+- **Controllers:** Business logic lives here. For example, the user controller handles profile lookups, the auth controller manages JWT generation and OTP logic, and the message controller fetches chat history.
+- **Routes:** Express router files that define the API endpoints. They map incoming HTTP requests (like POST /api/auth/login) to their respective controller functions. All protected routes run through a JWT authentication middleware first.
+- **Models:** Mongoose schemas that define the structure of the MongoDB database. The core models include User, Connection, Message, Meeting, and Notification.
+- **Real-time Engine:** Socket.IO is attached directly to the Express server to handle bidirectional events. When a user sends a chat message, the backend saves it to MongoDB and immediately broadcasts the "receiveMessage" event to the recipient's active socket room.
+
+### Directory Layout
+- /client: Contains the entire frontend application. It uses pure HTML, CSS, and Vanilla JavaScript. The /pages folder holds individual views (login, dashboard, chat, etc.), and the /js folder holds the main client-side logic that interacts with the backend API.
+- /server: Contains the Node.js application.
+  - /config: Database connection setup.
+  - /controllers: API logic and request handling.
+  - /middleware: Security and authentication checks.
+  - /models: Database schemas.
+  - /routes: API endpoint definitions.
+  - server.js: The main entry point that wires up Express, Socket.IO, and the database.
 ## Deployment
 This project is currently deployed on Render. To deploy your own instance, connect your GitHub repository to a new Render Web Service, set the build command to "npm install", the start command to "npm start", and ensure all environment variables from your local .env file are added to the Render dashboard.
 
