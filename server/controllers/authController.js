@@ -250,4 +250,22 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, updateProfile, getProfile, changePassword, forgotPassword, resetPassword };
+// deletes the user's account and cleans up their data
+const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // delete the user
+    await User.findByIdAndDelete(userId);
+    
+    // cleanup: delete connections involving this user
+    const Connection = require("../models/Connection");
+    await Connection.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
+
+    res.json({ message: "Account deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { registerUser, loginUser, updateProfile, getProfile, changePassword, forgotPassword, resetPassword, deleteAccount };

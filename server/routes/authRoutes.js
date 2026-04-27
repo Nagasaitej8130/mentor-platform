@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { registerUser, loginUser, updateProfile, getProfile, changePassword, forgotPassword, resetPassword } = require("../controllers/authController");
+const { registerUser, loginUser, updateProfile, getProfile, changePassword, forgotPassword, resetPassword, deleteAccount } = require("../controllers/authController");
 const protect = require("../middleware/authMiddleware");
 
 // public routes - anyone can access these without being logged in
@@ -14,5 +14,6 @@ router.post("/reset-password", resetPassword);
 router.put("/profile", protect, updateProfile);
 router.get("/profile", protect, getProfile);
 router.put("/change-password", protect, changePassword);
+router.delete("/profile", protect, deleteAccount);
 
 module.exports = router;

@@ -1565,3 +1565,33 @@ document.addEventListener("keydown", (e) => {
     }, 1500);
   }
 });
+
+// ─── ACCOUNT MANAGEMENT ───────────────────────────────────────────────────────
+
+async function confirmDeleteAccount() {
+  const confirmation = window.confirm(
+    "Are you absolutely sure you want to delete your account?\n\n" +
+    "This action CANNOT be undone. All your connections, messages, and profile data will be permanently erased."
+  );
+
+  if (!confirmation) return;
+
+  try {
+    const res = await fetch(`${API}/auth/profile`, {
+      method: "DELETE",
+      headers: authHeaders()
+    });
+    
+    const data = await res.json();
+    
+    if (res.ok) {
+      alert("Your account has been permanently deleted.");
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    } else {
+      showToast(data.message || "Failed to delete account", "error");
+    }
+  } catch (err) {
+    showToast("Network error occurred while trying to delete account.", "error");
+  }
+}
