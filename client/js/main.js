@@ -402,10 +402,10 @@ function togglePasswordVisibility(inputId, iconId) {
   if (!input) return;
   if (input.type === "password") {
     input.type = "text";
-    if (icon) icon.textContent = "🙈";
+    if (icon) icon.innerHTML = "<s>👁</s>";
   } else {
     input.type = "password";
-    if (icon) icon.textContent = "👁";
+    if (icon) icon.innerHTML = "👁";
   }
 }
 
